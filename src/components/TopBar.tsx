@@ -9,7 +9,8 @@ import {
   LogOut,
   Sparkles,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface TopBarProps {
@@ -46,6 +47,8 @@ export const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar }) => {
         return 'Analisis Butir Soal & Daya Serap';
       case 'admin_dashboard':
         return 'Panel Kelola Data Madrasah (Kelas, Siswa, Guru & Nilai)';
+      case 'google_sheets':
+        return 'Integrasi Otomatis Google Spreadsheet & Apps Script';
       case 'leaderboard':
         return 'Papan Peringkat Prestasi Madrasah';
       case 'play':
@@ -110,15 +113,33 @@ export const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar }) => {
           )}
         </button>
 
-        {/* Action Button: Quick Quiz or Builder */}
+        {/* Action Button: Google Sheets & Quick Quiz */}
         {isTeacherOrAdmin ? (
-          <button
-            onClick={() => setCurrentPage('quiz_builder')}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-transform active:scale-95"
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>+ Buat Kuis</span>
-          </button>
+          <>
+            <button
+              onClick={() => setCurrentPage('google_sheets')}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all border cursor-pointer ${
+                currentPage === 'google_sheets'
+                  ? 'bg-emerald-700 text-white border-emerald-800 shadow-xs'
+                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+              }`}
+              title="Buka Sinkronisasi Google Spreadsheet & Apps Script"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="hidden md:inline">Google Spreadsheet</span>
+              <span className="text-[9px] bg-amber-400 text-amber-950 px-1.5 py-0.2 rounded font-black">
+                Apps Script
+              </span>
+            </button>
+
+            <button
+              onClick={() => setCurrentPage('quiz_builder')}
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-transform active:scale-95 cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>+ Buat Kuis</span>
+            </button>
+          </>
         ) : (
           <button
             onClick={() => setCurrentPage('join')}

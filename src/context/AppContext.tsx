@@ -7,6 +7,7 @@ export type PageView =
   | 'login'
   | 'join' 
   | 'admin_dashboard' 
+  | 'google_sheets'
   | 'guru_dashboard' 
   | 'student_dashboard' 
   | 'ai_generator' 
@@ -219,7 +220,8 @@ export const isPageAllowedForRole = (page: PageView, role: UserRole): boolean =>
     case 'analytics':
       return role === 'ADMIN' || role === 'GURU';
     case 'admin_dashboard':
-      // Admin has full access, Guru can access class/student/grades section
+    case 'google_sheets':
+      // Admin has full access, Guru can access class/student/grades section and Google Sheets
       return role === 'ADMIN' || role === 'GURU';
     default:
       return true;

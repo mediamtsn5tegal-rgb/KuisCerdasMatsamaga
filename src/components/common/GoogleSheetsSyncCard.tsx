@@ -50,11 +50,16 @@ import { useApp } from '../../context/AppContext';
 interface Props {
   compact?: boolean;
   onSuccess?: () => void;
+  initialTab?: 'SHEETS_API' | 'APPS_SCRIPT';
 }
 
 type SyncActionType = 'TWO_WAY' | 'PUSH' | 'PULL' | 'CLEAR_DEMO';
 
-export const GoogleSheetsSyncCard: React.FC<Props> = ({ compact = false, onSuccess }) => {
+export const GoogleSheetsSyncCard: React.FC<Props> = ({
+  compact = false,
+  onSuccess,
+  initialTab = 'APPS_SCRIPT'
+}) => {
   const { showToast, triggerRefresh } = useApp();
   const [googleUser, setGoogleUser] = useState<AppGoogleUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -71,7 +76,7 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({ compact = false, onSucce
   const [showVerificationHelp, setShowVerificationHelp] = useState(false);
 
   // New diagnostic & alternative connection states
-  const [activeTab, setActiveTab] = useState<'SHEETS_API' | 'APPS_SCRIPT'>('SHEETS_API');
+  const [activeTab, setActiveTab] = useState<'SHEETS_API' | 'APPS_SCRIPT'>(initialTab);
   const [errorModalInfo, setErrorModalInfo] = useState<GoogleAuthErrorInfo | null>(null);
   const [copiedDomain, setCopiedDomain] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
@@ -444,33 +449,58 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({ compact = false, onSucce
       </div>
 
       {/* Mode Tabs: Sheets API vs Google Apps Script */}
-      <div className="flex border-b border-slate-200 bg-slate-50/70 px-6 pt-3 gap-2">
-        <button
-          onClick={() => setActiveTab('SHEETS_API')}
-          className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all border-t border-x cursor-pointer flex items-center gap-2 ${
-            activeTab === 'SHEETS_API'
-              ? 'bg-white text-emerald-800 border-slate-200 border-b-transparent shadow-2xs'
-              : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
-          }`}
-        >
-          <Layers className="w-3.5 h-3.5 text-emerald-600" />
-          <span>Metode 1: Google Sheets API v4 (Otomatis)</span>
-        </button>
+      <div className="bg-slate-100/90 p-2 sm:p-3 border-b border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('APPS_SCRIPT')}
+            className={`p-3 rounded-xl transition-all cursor-pointer text-left flex items-start gap-3 border ${
+              activeTab === 'APPS_SCRIPT'
+                ? 'bg-teal-700 text-white border-teal-800 shadow-md ring-2 ring-teal-400/40'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-teal-300 hover:bg-teal-50/50'
+            }`}
+          >
+            <div className={`p-2 rounded-lg shrink-0 ${activeTab === 'APPS_SCRIPT' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-700'}`}>
+              <Code className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-xs">Metode 2: Google Apps Script</span>
+                <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase ${activeTab === 'APPS_SCRIPT' ? 'bg-amber-400 text-amber-950' : 'bg-teal-100 text-teal-800'}`}>
+                  Rekomendasi
+                </span>
+              </div>
+              <p className={`text-[11px] mt-0.5 leading-snug ${activeTab === 'APPS_SCRIPT' ? 'text-teal-100' : 'text-slate-500'}`}>
+                100% Bebas Firebase & OAuth. Salin kode skrip ke Google Sheets lalu simpan URL Web App.
+              </p>
+            </div>
+          </button>
 
-        <button
-          onClick={() => setActiveTab('APPS_SCRIPT')}
-          className={`px-4 py-2 text-xs font-bold rounded-t-xl transition-all border-t border-x cursor-pointer flex items-center gap-2 ${
-            activeTab === 'APPS_SCRIPT'
-              ? 'bg-white text-teal-800 border-slate-200 border-b-transparent shadow-2xs'
-              : 'bg-transparent text-slate-500 border-transparent hover:text-slate-800'
-          }`}
-        >
-          <Code className="w-3.5 h-3.5 text-teal-600" />
-          <span>Metode 2: Google Apps Script (100% Bebas Firebase)</span>
-          <span className="text-[9px] bg-teal-100 text-teal-800 px-1.5 py-0.5 rounded-full font-bold">
-            Rekomendasi
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('SHEETS_API')}
+            className={`p-3 rounded-xl transition-all cursor-pointer text-left flex items-start gap-3 border ${
+              activeTab === 'SHEETS_API'
+                ? 'bg-emerald-800 text-white border-emerald-900 shadow-md ring-2 ring-emerald-400/40'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+            }`}
+          >
+            <div className={`p-2 rounded-lg shrink-0 ${activeTab === 'SHEETS_API' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700'}`}>
+              <Layers className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-xs">Metode 1: Google Sheets API v4</span>
+                <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${activeTab === 'SHEETS_API' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  Login Google
+                </span>
+              </div>
+              <p className={`text-[11px] mt-0.5 leading-snug ${activeTab === 'SHEETS_API' ? 'text-emerald-100' : 'text-slate-500'}`}>
+                Login menggunakan akun Google via Firebase/GSI untuk membuat spreadsheet otomatis.
+              </p>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Card Body */}

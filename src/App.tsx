@@ -198,6 +198,11 @@ export default function App() {
           return <AccessDenied requiredRole="GURU" pageTitle="Panel Kelola Data & Nilai Madrasah" />;
         }
         return <AdminDashboard />;
+      case 'google_sheets':
+        if (currentUser.role === 'SISWA') {
+          return <AccessDenied requiredRole="GURU" pageTitle="Integrasi Google Spreadsheet" />;
+        }
+        return <AdminDashboard initialTab="SHEETS" />;
       case 'analytics':
         if (currentUser.role === 'SISWA') {
           return <AccessDenied requiredRole="GURU" pageTitle="Analisis Butir Soal & Nilai" />;

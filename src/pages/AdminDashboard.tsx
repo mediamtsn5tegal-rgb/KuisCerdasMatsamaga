@@ -22,12 +22,22 @@ import { TeacherManagement } from '../components/admin/TeacherManagement';
 import { ClassGradesReport } from '../components/admin/ClassGradesReport';
 import { GoogleSheetsSyncCard } from '../components/common/GoogleSheetsSyncCard';
 
-export const AdminDashboard: React.FC = () => {
+interface AdminDashboardProps {
+  initialTab?: 'CLASSES' | 'STUDENTS' | 'TEACHERS' | 'GRADES' | 'SHEETS' | 'SETTINGS' | 'LOGS';
+}
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = ({ initialTab = 'CLASSES' }) => {
   const { showToast, triggerRefresh, setCurrentPage } = useApp();
 
   const [activeTab, setActiveTab] = useState<
     'CLASSES' | 'STUDENTS' | 'TEACHERS' | 'GRADES' | 'SHEETS' | 'SETTINGS' | 'LOGS'
-  >('CLASSES');
+  >(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   const [classes, setClasses] = useState<ClassRoom[]>([]);
   const [students, setStudents] = useState<User[]>([]);
@@ -161,6 +171,38 @@ export const AdminDashboard: React.FC = () => {
         onUpdate={loadData}
       />
 
+      {/* Quick Google Sheets Alert / Banner */}
+      {activeTab !== 'SHEETS' && (
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-100 border-2 border-emerald-300/80 p-3 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <FileSpreadsheet className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-extrabold text-xs sm:text-sm text-emerald-950">
+                  Integrasi Otomatis Google Spreadsheet & Apps Script
+                </h4>
+                <span className="text-[10px] bg-emerald-700 text-white px-2 py-0.5 rounded-full font-black">
+                  Tersedia
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-800 font-medium">
+                Sinkronisasi data kuis dan nilai siswa ke Google Sheets via Google Apps Script (Bebas error Firebase).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('SHEETS')}
+            className="shrink-0 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Buka Google Spreadsheet & Apps Script</span>
+          </button>
+        </div>
+      )}
+
       {/* Navigation Tabs */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2 text-xs font-bold">
         <button
@@ -213,14 +255,17 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('SHEETS')}
-          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition-all ${
+          className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl transition-all border ${
             activeTab === 'SHEETS'
-              ? 'bg-emerald-700 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+              ? 'bg-emerald-800 text-white border-emerald-900 shadow-md ring-2 ring-emerald-400/40'
+              : 'bg-emerald-50 text-emerald-900 border-emerald-300 hover:bg-emerald-100'
           }`}
         >
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span>Google Spreadsheet</span>
+          <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+          <span>Google Spreadsheet & Apps Script</span>
+          <span className="text-[9px] bg-emerald-600 text-white font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+            Bebas Firebase
+          </span>
         </button>
 
         <button

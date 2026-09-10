@@ -22,7 +22,8 @@ import {
   X,
   ChevronRight,
   Sparkle,
-  GraduationCap
+  GraduationCap,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -340,7 +341,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 }`}
               >
                 <ShieldAlert className="w-4 h-4 text-purple-300" />
-                <span>Kelola Data Kelas, Siswa & Guru</span>
+                <span>Panel Kelola Madrasah (Admin)</span>
+              </button>
+              <button
+                onClick={() => handleNav('google_sheets')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
+                  isActive('google_sheets')
+                    ? 'bg-emerald-500 text-white font-bold shadow-md'
+                    : 'text-emerald-100 hover:bg-[#047857] hover:text-white'
+                }`}
+              >
+                <span className="flex items-center gap-2.5">
+                  <FileSpreadsheet className="w-4 h-4 text-amber-300" />
+                  <span className="font-semibold">Google Spreadsheet</span>
+                </span>
+                <span className="text-[9px] bg-amber-400 text-amber-950 font-black px-1.5 py-0.5 rounded shadow-2xs">
+                  Apps Script
+                </span>
               </button>
             </div>
           )}
