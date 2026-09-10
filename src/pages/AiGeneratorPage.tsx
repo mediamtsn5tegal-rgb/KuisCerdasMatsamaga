@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Question, CognitiveLevel, KbcValue, ProfilLulusan, QuizType } from '../types';
+import { getSafeErrorMessage } from '../utils/apiHelper';
 import {
   Sparkles,
   Layers,
@@ -71,7 +72,12 @@ export const AiGeneratorPage: React.FC = () => {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal membuat soal dengan AI');
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json().catch(() => ({}));
       if (data.success && Array.isArray(data.questions)) {
         setGeneratedQuestions(data.questions);
         showToast(`Berhasil membuat ${data.questions.length} butir soal dengan AI! Silakan tinjau sebelum disimpan.`, 'success');
@@ -125,14 +131,19 @@ export const AiGeneratorPage: React.FC = () => {
         })
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mempublikasikan kuis');
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json().catch(() => ({}));
       if (data && data.code) {
         showToast(`Kuis "${data.title}" berhasil dipublikasikan! Kode: ${data.code}`, 'success');
         triggerRefresh();
         setCurrentPage('guru_dashboard');
       }
-    } catch {
-      showToast('Gagal mempublikasikan kuis.', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Gagal mempublikasikan kuis.', 'error');
     }
   };
 

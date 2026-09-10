@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Question, QuizType, Quiz } from '../types';
+import { getSafeErrorMessage } from '../utils/apiHelper';
 import {
   ArrowLeft,
   ArrowRight,
@@ -110,14 +111,19 @@ export const QuizBuilderPage: React.FC = () => {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mempublikasikan kuis');
+        throw new Error(errMsg);
+      }
+
+      const data = await res.json().catch(() => ({}));
       if (data && data.code) {
         showToast(`Kuis "${data.title}" berhasil dipublikasikan! Kode: ${data.code}`, 'success');
         triggerRefresh();
         setCurrentPage('guru_dashboard');
       }
-    } catch {
-      showToast('Gagal mempublikasikan kuis.', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Gagal mempublikasikan kuis.', 'error');
     } finally {
       setIsSubmitting(false);
     }

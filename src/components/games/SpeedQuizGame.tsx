@@ -4,6 +4,7 @@ import { Quiz } from '../../types';
 import { soundManager } from '../../services/audioEffects';
 import { useApp } from '../../context/AppContext';
 import { Zap, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface SpeedQuizGameProps {
   quiz: Quiz;
@@ -116,6 +117,11 @@ export const SpeedQuizGame: React.FC<SpeedQuizGameProps> = ({
           clientTimeSpent
         })
       });
+
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengirim jawaban kuis cepat');
+        throw new Error(errMsg);
+      }
 
       const data = await res.json();
       if (data.success && data.result) {

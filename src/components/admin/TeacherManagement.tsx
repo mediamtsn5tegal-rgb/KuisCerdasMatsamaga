@@ -17,6 +17,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { User } from '../../types';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface Props {
   teachers: User[];
@@ -98,8 +99,8 @@ export const TeacherManagement: React.FC<Props> = ({ teachers, onRefresh, showTo
           })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal mengubah data guru');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal mengubah data guru');
+          throw new Error(errMsg);
         }
         showToast(`Data guru ${name} berhasil diperbarui`, 'success');
       } else {
@@ -117,8 +118,8 @@ export const TeacherManagement: React.FC<Props> = ({ teachers, onRefresh, showTo
           })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal menambahkan data guru');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal menambahkan data guru');
+          throw new Error(errMsg);
         }
         showToast(`Guru baru ${name} berhasil ditambahkan`, 'success');
       }
@@ -142,8 +143,8 @@ export const TeacherManagement: React.FC<Props> = ({ teachers, onRefresh, showTo
     try {
       const res = await fetch(`/api/teachers/${t.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal menghapus guru');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal menghapus guru');
+        throw new Error(errMsg);
       }
       showToast(`Guru ${t.name} berhasil dihapus`, 'success');
       onRefresh();
@@ -210,11 +211,11 @@ export const TeacherManagement: React.FC<Props> = ({ teachers, onRefresh, showTo
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal mengimpor data guru');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengimpor data guru');
+        throw new Error(errMsg);
       }
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       showToast(data.message || 'Import data guru berhasil!', 'success');
       setIsUploadOpen(false);
       setUploadText('');

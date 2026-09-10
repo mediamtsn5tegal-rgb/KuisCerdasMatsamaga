@@ -4,6 +4,7 @@ import { Quiz } from '../../types';
 import { soundManager } from '../../services/audioEffects';
 import { useApp } from '../../context/AppContext';
 import { Clock, CheckCircle2, XCircle, ArrowLeft, ArrowRight, HelpCircle, Sparkles } from 'lucide-react';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface MultipleChoiceGameProps {
   quiz: Quiz;
@@ -123,6 +124,11 @@ export const MultipleChoiceGame: React.FC<MultipleChoiceGameProps> = ({
           clientTimeSpent
         })
       });
+
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengirim jawaban kuis');
+        throw new Error(errMsg);
+      }
 
       const data = await res.json();
       if (data.success && data.result) {

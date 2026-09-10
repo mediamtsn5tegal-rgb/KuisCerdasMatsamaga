@@ -167,6 +167,17 @@
       "studentClass": "IX B",
       "gender": "P",
       "createdAt": "2026-09-06T23:19:21.275Z"
+    },
+    {
+      "id": "u_siswa_1789056174872_pbp2",
+      "name": "Budi Siswa Test",
+      "nis": "21220999",
+      "email": "budisiswatest@matsamaga.sch.id",
+      "role": "SISWA",
+      "classId": "c_9a",
+      "studentClass": "IX A",
+      "gender": "L",
+      "createdAt": "2026-09-10T16:02:54.872Z"
     }
   ],
   "badges": [
@@ -3113,6 +3124,38 @@
   ],
   "competitionRooms": [],
   "auditLogs": [
+    {
+      "id": "log_1789056697175_envx",
+      "action": "DELETE_STUDENT",
+      "user": "Admin/Guru",
+      "role": "ADMIN",
+      "details": "Menghapus siswa: Test Siswa",
+      "timestamp": "2026-09-10T16:11:37.175Z"
+    },
+    {
+      "id": "log_1789056693941_raj5",
+      "action": "CREATE_STUDENT",
+      "user": "Admin/Guru",
+      "role": "ADMIN",
+      "details": "Menambahkan siswa: Test Siswa (9A)",
+      "timestamp": "2026-09-10T16:11:33.941Z"
+    },
+    {
+      "id": "log_1789056174873_ug39",
+      "action": "CREATE_STUDENT",
+      "user": "Admin/Guru",
+      "role": "ADMIN",
+      "details": "Menambahkan siswa: Budi Siswa Test (IX A)",
+      "timestamp": "2026-09-10T16:02:54.873Z"
+    },
+    {
+      "id": "log_1789055287838_xuy7",
+      "action": "ADMIN_LOGIN",
+      "user": "Administrator MTsN 5 Tegal",
+      "role": "ADMIN",
+      "details": "Administrator masuk via Portal Administrator.",
+      "timestamp": "2026-09-10T15:48:07.838Z"
+    },
     {
       "id": "log_1788736765493_91ex",
       "action": "RESET_DATABASE",

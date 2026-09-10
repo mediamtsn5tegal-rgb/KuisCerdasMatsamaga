@@ -4,6 +4,7 @@ import { Quiz } from '../../types';
 import { soundManager } from '../../services/audioEffects';
 import { useApp } from '../../context/AppContext';
 import { Clock, ArrowLeft, ZoomIn, X, Lightbulb, CheckCircle, ArrowRight } from 'lucide-react';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface PictureGuessGameProps {
   quiz: Quiz;
@@ -111,6 +112,11 @@ export const PictureGuessGame: React.FC<PictureGuessGameProps> = ({
           clientTimeSpent
         })
       });
+
+      if (!res.ok) {
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengirim jawaban tebak gambar');
+        throw new Error(errMsg);
+      }
 
       const data = await res.json();
       if (data.success && data.result) {

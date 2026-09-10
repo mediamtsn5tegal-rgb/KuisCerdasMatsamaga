@@ -320,7 +320,7 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
         if (onSuccess) onSuccess();
       } else if (selectedAction === 'CLEAR_DEMO') {
         const res = await fetch('/api/admin/clear-demo-results', { method: 'POST' });
-        const d = await res.json();
+        const d = await res.json().catch(() => ({}));
         showToast(d.message || 'Hasil demo berhasil dibersihkan!', 'success');
         triggerRefresh();
         if (onSuccess) onSuccess();

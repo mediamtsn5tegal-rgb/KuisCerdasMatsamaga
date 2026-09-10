@@ -13,6 +13,7 @@ import {
   Filter
 } from 'lucide-react';
 import { User, ClassRoom } from '../../types';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface Props {
   students: User[];
@@ -99,8 +100,8 @@ export const StudentManagement: React.FC<Props> = ({ students, classes, onRefres
           })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal mengubah data siswa');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal mengubah data siswa');
+          throw new Error(errMsg);
         }
         showToast(`Data siswa ${name} berhasil diperbarui`, 'success');
       } else {
@@ -118,8 +119,8 @@ export const StudentManagement: React.FC<Props> = ({ students, classes, onRefres
           })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal menambahkan siswa baru');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal menambahkan siswa baru');
+          throw new Error(errMsg);
         }
         showToast(`Siswa baru ${name} berhasil ditambahkan`, 'success');
       }
@@ -138,8 +139,8 @@ export const StudentManagement: React.FC<Props> = ({ students, classes, onRefres
     try {
       const res = await fetch(`/api/students/${s.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal menghapus siswa');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal menghapus siswa');
+        throw new Error(errMsg);
       }
       showToast(`Siswa ${s.name} berhasil dihapus`, 'success');
       onRefresh();
@@ -206,11 +207,11 @@ export const StudentManagement: React.FC<Props> = ({ students, classes, onRefres
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal mengimpor data siswa');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengimpor data siswa');
+        throw new Error(errMsg);
       }
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       showToast(data.message || 'Import data siswa berhasil!', 'success');
       setIsUploadOpen(false);
       setUploadText('');

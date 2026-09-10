@@ -14,6 +14,7 @@ import {
   Download
 } from 'lucide-react';
 import { ClassRoom } from '../../types';
+import { getSafeErrorMessage } from '../../utils/apiHelper';
 
 interface Props {
   classes: ClassRoom[];
@@ -82,8 +83,8 @@ export const ClassManagement: React.FC<Props> = ({ classes, onRefresh, showToast
           body: JSON.stringify({ name, grade, waliKelas, academicYear })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal mengubah data kelas');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal mengubah data kelas');
+          throw new Error(errMsg);
         }
         showToast(`Kelas ${name} berhasil diperbarui`, 'success');
       } else {
@@ -94,8 +95,8 @@ export const ClassManagement: React.FC<Props> = ({ classes, onRefresh, showToast
           body: JSON.stringify({ name, grade, waliKelas, academicYear })
         });
         if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Gagal menambah kelas');
+          const errMsg = await getSafeErrorMessage(res, 'Gagal menambah kelas');
+          throw new Error(errMsg);
         }
         showToast(`Kelas ${name} berhasil ditambahkan`, 'success');
       }
@@ -114,8 +115,8 @@ export const ClassManagement: React.FC<Props> = ({ classes, onRefresh, showToast
     try {
       const res = await fetch(`/api/classes/${c.id}`, { method: 'DELETE' });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal menghapus kelas');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal menghapus kelas');
+        throw new Error(errMsg);
       }
       showToast(`Kelas ${c.name} berhasil dihapus`, 'success');
       onRefresh();
@@ -192,11 +193,11 @@ export const ClassManagement: React.FC<Props> = ({ classes, onRefresh, showToast
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Gagal mengimpor data kelas');
+        const errMsg = await getSafeErrorMessage(res, 'Gagal mengimpor data kelas');
+        throw new Error(errMsg);
       }
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       showToast(data.message || 'Import data kelas berhasil!', 'success');
       setIsUploadOpen(false);
       setUploadText('');

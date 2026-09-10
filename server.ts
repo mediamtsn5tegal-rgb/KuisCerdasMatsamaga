@@ -9,8 +9,28 @@ import { QuizResult, QuestionAnswerRecord, Quiz, Question, CompetitionRoom } fro
 export const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Safe body parsing: When deployed on Vercel or serverless environments, Vercel
+// pre-parses req.body. If req.body is already populated, skip express.json()
+// to prevent stream read errors or hanging requests.
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return next();
+  }
+  express.json({ limit: '10mb' })(req, res, err => {
+    if (err) {
+      if (req.body) return next();
+      return res.status(400).json({ error: 'Format JSON pada request tidak valid' });
+    }
+    next();
+  });
+});
+
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+    return next();
+  }
+  express.urlencoded({ extended: true, limit: '10mb' })(req, res, () => next());
+});
 
   // --- API ROUTES ---
 
@@ -1754,6 +1774,18 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
     res.status(404).json({ error: `API route not found: ${req.method} ${req.path}` });
   });
 
+  // Global error handler: ALWAYS returns JSON, never HTML error pages
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('Unhandled Server Error:', err);
+    if (res.headersSent) {
+      return next(err);
+    }
+    res.status(err.status || 500).json({
+      error: err.message || 'Terjadi kesalahan internal pada server',
+      success: false
+    });
+  });
+
   // Only start standalone HTTP server and Vite middleware if NOT running on Vercel serverless function
   if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
     async function startServer() {
@@ -1777,8 +1809,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
         });
       }
 
-      app.listen(PORT, '0.0.0.0', () => {
+      const server = app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server running on http://0.0.0.0:${PORT}`);
+      });
+
+      server.on('error', (err: any) => {
+        if (err.code === 'EADDRINUSE') {
+          console.warn(`Port ${PORT} is already in use.`);
+        } else {
+          console.error('Server listen error:', err);
+        }
       });
     }
 
