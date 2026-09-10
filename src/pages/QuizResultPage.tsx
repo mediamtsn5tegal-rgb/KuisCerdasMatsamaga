@@ -19,7 +19,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { getAccessToken } from '../services/googleAuthService';
-import { appendQuizResultToSheets } from '../services/googleSheetsService';
+import { appendQuizResultToSheets, syncToAppsScriptWebapp } from '../services/googleSheetsService';
 
 interface QuizResultPageProps {
   resultId: string;
@@ -54,6 +54,8 @@ export const QuizResultPage: React.FC<QuizResultPageProps> = ({ resultId, onPlay
           const settingsRes = await fetch('/api/admin/settings');
           if (settingsRes.ok) {
             const settings = await settingsRes.json();
+            
+            // Sync via Google Sheets API (OAuth)
             if (settings?.googleSpreadsheetId) {
               setSheetUrl(
                 settings.googleSpreadsheetUrl ||
@@ -69,6 +71,40 @@ export const QuizResultPage: React.FC<QuizResultPageProps> = ({ resultId, onPlay
                 );
                 setSheetSynced(true);
               }
+            }
+
+            // Sync via Google Apps Script (Bypass OAuth / Firebase)
+            if (settings?.googleAppsScriptUrl) {
+              const rowData = [
+                data.id,
+                new Date(data.completedAt || new Date()).toLocaleString('id-ID'),
+                data.studentName,
+                data.studentNis || '-',
+                data.studentClass,
+                data.quizTitle,
+                data.score,
+                data.correctCount,
+                data.wrongCount,
+                Math.round(data.timeSpentSeconds / 60) + ' menit',
+                data.score >= (data.passingScore || 75) ? 'TUNTAS (KKTP)' : 'REMEDIAL',
+                (data.badgesEarned || []).join(', ')
+              ];
+              const headers = [
+                'ID Hasil',
+                'Waktu Selesai',
+                'Nama Lengkap Siswa',
+                'NIS/NISN',
+                'Rombel Kelas',
+                'Judul Kuis Asesmen',
+                'Skor Akhir (0-100)',
+                'Jumlah Benar',
+                'Jumlah Salah',
+                'Durasi Pengerjaan',
+                'Status Kelulusan KKTP',
+                'Lencana Diperoleh'
+              ];
+              await syncToAppsScriptWebapp(settings.googleAppsScriptUrl, 'Hasil_Asesmen_Siswa', headers, [rowData]);
+              setSheetSynced(true);
             }
           }
         } catch (err) {

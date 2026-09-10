@@ -613,3 +613,93 @@ export async function twoWaySyncWithGoogleSheets(
     message: `Sinkronisasi Dua Arah Berhasil! Data madrasah diperbarui dari spreadsheet, dan seluruh nilai asesmen terbaru telah disinkronkan kembali ke Google Sheets.`
   };
 }
+
+/**
+ * Template Google Apps Script siap pakai bagi madrasah yang ingin
+ * integrasi 100% bebas error Firebase dan bebas OAuth domain restriction.
+ */
+export const GOOGLE_APPS_SCRIPT_TEMPLATE = `// ===============================================================
+// SKRIP GOOGLE APPS SCRIPT UNTUK KUIS CERDAS MATSAMAGA
+// MTsN 5 TEGAL - 100% BEBAS FIREBASE & OAUTH DOMAIN RESTRICTION
+// ===============================================================
+// CARA PEMASANGAN:
+// 1. Buat Google Spreadsheet baru di Google Drive Anda (sheets.new)
+// 2. Buka menu: Ekstensi > Apps Script
+// 3. Hapus semua kode yang ada, tempelkan SELURUH skrip ini
+// 4. Klik tombol "Simpan" (ikon disket)
+// 5. Klik tombol "Terapkan" (Deploy) di kanan atas > "Deployment baru"
+// 6. Pilih jenis: "Aplikasi Web" (Web app)
+//    - Jalankan sebagai: "Saya (email Anda)"
+//    - Siapa yang memiliki akses: "Siapa saja" (Anyone)
+// 7. Klik "Deploy", izinkan akses Google jika diminta
+// 8. Salin "URL Aplikasi Web" (akhiran /exec) dan tempelkan ke aplikasi Kuis Cerdas Matsamaga.
+// ===============================================================
+
+function doPost(e) {
+  try {
+    var raw = e.postData.contents;
+    var data = JSON.parse(raw);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    var sheetName = data.sheet || 'Hasil_Asesmen_Siswa';
+    var sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      if (data.headers) {
+        sheet.appendRow(data.headers);
+      }
+    }
+    
+    if (data.rows && Array.isArray(data.rows)) {
+      for (var i = 0; i < data.rows.length; i++) {
+        sheet.appendRow(data.rows[i]);
+      }
+    } else if (data.row) {
+      sheet.appendRow(data.row);
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'success', message: 'Data berhasil disimpan' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'error', message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheetName = (e && e.parameter && e.parameter.sheet) ? e.parameter.sheet : 'Hasil_Asesmen_Siswa';
+  var sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({ data: [] })).setMimeType(ContentService.MimeType.JSON);
+  }
+  var values = sheet.getDataRange().getValues();
+  return ContentService.createTextOutput(JSON.stringify({ data: values })).setMimeType(ContentService.MimeType.JSON);
+}
+`;
+
+/**
+ * Kirim data ke Google Apps Script Web App tanpa melalui Firebase Auth / OAuth
+ */
+export async function syncToAppsScriptWebapp(
+  appsScriptUrl: string,
+  sheetName: string,
+  headers: string[],
+  rows: any[][]
+): Promise<boolean> {
+  try {
+    await fetch(appsScriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ sheet: sheetName, headers, rows })
+    });
+    return true;
+  } catch (err) {
+    console.error('Apps Script Sync Error:', err);
+    return false;
+  }
+}
+

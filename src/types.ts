@@ -303,6 +303,7 @@ export interface SystemSettings {
   academicYear: string;
   googleSpreadsheetId?: string;
   googleSpreadsheetUrl?: string;
+  googleAppsScriptUrl?: string;
   lastSpreadsheetSync?: string;
   autoSyncSheets?: boolean;
 }
