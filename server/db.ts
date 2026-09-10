@@ -12,7 +12,10 @@ import {
   AchievementBadge
 } from '../src/types';
 
-const DB_FILE = path.join(process.cwd(), 'data_store.json');
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DB_FILE = isVercel
+  ? path.join('/tmp', 'data_store.json')
+  : path.join(process.cwd(), 'data_store.json');
 
 export interface DatabaseState {
   users: User[];
@@ -850,8 +853,16 @@ class DatabaseService {
 
   private load(): DatabaseState {
     try {
-      if (fs.existsSync(DB_FILE)) {
-        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+      let targetPath = DB_FILE;
+      if (isVercel && !fs.existsSync(DB_FILE)) {
+        const bundledPath = path.join(process.cwd(), 'data_store.json');
+        if (fs.existsSync(bundledPath)) {
+          targetPath = bundledPath;
+        }
+      }
+
+      if (fs.existsSync(targetPath)) {
+        const raw = fs.readFileSync(targetPath, 'utf-8');
         const parsed = JSON.parse(raw);
         let modified = false;
 

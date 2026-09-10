@@ -269,6 +269,39 @@ const DEFAULT_USER: User = {
   createdAt: new Date().toISOString()
 };
 
+const INITIAL_FALLBACK_USERS: User[] = [
+  DEFAULT_USER,
+  {
+    id: 'u_admin_1',
+    name: 'Administrator MTsN 5 Tegal',
+    email: 'admin@matsamaga.sch.id',
+    role: 'ADMIN',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'u_siswa_1',
+    name: 'Muhammad Raihan',
+    nis: '21220901',
+    email: 'raihan@matsamaga.sch.id',
+    role: 'SISWA',
+    classId: 'c_9a',
+    studentClass: 'IX A',
+    gender: 'L',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'u_siswa_2',
+    name: 'Siti Fatimah',
+    nis: '21220902',
+    email: 'fatimah@matsamaga.sch.id',
+    role: 'SISWA',
+    classId: 'c_9a',
+    studentClass: 'IX A',
+    gender: 'P',
+    createdAt: new Date().toISOString()
+  }
+];
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -289,7 +322,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.isEnabled());
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
   const [refreshKey, setRefreshKey] = useState<number>(0);
-  const [allUsers, setAllUsers] = useState<User[]>([DEFAULT_USER]);
+  const [allUsers, setAllUsers] = useState<User[]>(INITIAL_FALLBACK_USERS);
 
   useEffect(() => {
     fetch('/api/users')

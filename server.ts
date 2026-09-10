@@ -6,12 +6,11 @@ import { generateQuizQuestionsWithAi } from './server/gemini';
 import { generateCrossword, sanitizeAnswer } from './src/services/crosswordGenerator';
 import { QuizResult, QuestionAnswerRecord, Quiz, Question, CompetitionRoom } from './src/types';
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+export const app = express();
+const PORT = 3000;
 
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // --- API ROUTES ---
 
@@ -1755,29 +1754,35 @@ async function startServer() {
     res.status(404).json({ error: `API route not found: ${req.method} ${req.path}` });
   });
 
-  // Vite middleware setup
-  const isProduction =
-    process.env.NODE_ENV === 'production' ||
-    (!process.env.NODE_ENV && fs.existsSync(path.join(process.cwd(), 'dist', 'index.html')));
+  // Only start standalone HTTP server and Vite middleware if NOT running on Vercel serverless function
+  if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    async function startServer() {
+      // Vite middleware setup
+      const isProduction =
+        process.env.NODE_ENV === 'production' ||
+        (!process.env.NODE_ENV && fs.existsSync(path.join(process.cwd(), 'dist', 'index.html')));
 
-  if (!isProduction) {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+      if (!isProduction) {
+        const { createServer: createViteServer } = await import('vite');
+        const vite = await createViteServer({
+          server: { middlewareMode: true },
+          appType: 'spa'
+        });
+        app.use(vite.middlewares);
+      } else {
+        const distPath = path.join(process.cwd(), 'dist');
+        app.use(express.static(distPath));
+        app.get('*', (req, res) => {
+          res.sendFile(path.join(distPath, 'index.html'));
+        });
+      }
+
+      app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on http://0.0.0.0:${PORT}`);
+      });
+    }
+
+    startServer();
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-  });
-}
-
-startServer();
+  export default app;
