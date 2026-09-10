@@ -1,0 +1,963 @@
+import fs from 'fs';
+import path from 'path';
+import {
+  User,
+  ClassRoom,
+  Question,
+  Quiz,
+  QuizResult,
+  CompetitionRoom,
+  AuditLog,
+  SystemSettings,
+  AchievementBadge
+} from '../src/types';
+
+const DB_FILE = path.join(process.cwd(), 'data_store.json');
+
+export interface DatabaseState {
+  users: User[];
+  classes: ClassRoom[];
+  subjects: { id: string; name: string; code: string }[];
+  questions: Question[];
+  quizzes: Quiz[];
+  results: QuizResult[];
+  competitionRooms: CompetitionRoom[];
+  auditLogs: AuditLog[];
+  settings: SystemSettings;
+  badges: AchievementBadge[];
+}
+
+const INITIAL_STATE: DatabaseState = {
+  settings: {
+    madrasahName: 'MTsN 5 Tegal',
+    appName: 'KUIS CERDAS MATSAMAGA',
+    tagline: 'Belajar, Bermain, Berpikir, dan Berprestasi.',
+    vision: 'Unggul dalam Prestasi, Tangguh dalam Kompetisi, dan Luhur dalam Budi Pekerti.',
+    developerName: 'Supro, S.Pd.',
+    developerRole: 'Guru Mapel IPS & Pengembang Aplikasi KCM MTsN 5 Tegal',
+    developerBio: 'Pendidik inovatif MTsN 5 Tegal yang merancang dan mengembangkan platform asesmen interaktif gamifikasi berbasis Kurikulum Merdeka Fase D & Kurikulum Berbasis Cinta (KBC).',
+    defaultDuration: 15,
+    defaultKktp: 75,
+    academicYear: '2026/2027'
+  },
+  classes: [
+    { id: 'c_7a', name: 'VII A', grade: 'VII', waliKelas: 'Dra. Hj. Nurjanah', academicYear: '2026/2027' },
+    { id: 'c_7b', name: 'VII B', grade: 'VII', waliKelas: 'Budi Santoso, S.Pd.', academicYear: '2026/2027' },
+    { id: 'c_8a', name: 'VIII A', grade: 'VIII', waliKelas: 'Rina Marlina, S.Si.', academicYear: '2026/2027' },
+    { id: 'c_8b', name: 'VIII B', grade: 'VIII', waliKelas: 'H. M. Syukron, M.Ag.', academicYear: '2026/2027' },
+    { id: 'c_9a', name: 'IX A', grade: 'IX', waliKelas: 'Supro, S.Pd.', academicYear: '2026/2027' },
+    { id: 'c_9b', name: 'IX B', grade: 'IX', waliKelas: 'Khabibatun, S.Pd.', academicYear: '2026/2027' }
+  ],
+  subjects: [
+    { id: 's_ips', name: 'Ilmu Pengetahuan Sosial (IPS)', code: 'IPS' },
+    { id: 's_pai', name: 'PAI dan Budi Pekerti', code: 'PAI' },
+    { id: 's_mat', name: 'Matematika', code: 'MAT' },
+    { id: 's_ipa', name: 'Ilmu Pengetahuan Alam (IPA)', code: 'IPA' },
+    { id: 's_bin', name: 'Bahasa Indonesia', code: 'BIN' },
+    { id: 's_big', name: 'Bahasa Inggris', code: 'BIG' }
+  ],
+  users: [
+    {
+      id: 'u_admin_1',
+      name: 'Administrator MTsN 5 Tegal',
+      email: 'admin@matsamaga.sch.id',
+      role: 'ADMIN',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_guru_1',
+      name: 'Supro, S.Pd.',
+      nip: '198205122009011012',
+      email: 'supro@matsamaga.sch.id',
+      role: 'GURU',
+      subject: 'IPS',
+      phone: '081234567890',
+      isDeveloper: true,
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_guru_2',
+      name: 'Dra. Hj. Nurjanah',
+      nip: '197508202003122001',
+      email: 'nurjanah@matsamaga.sch.id',
+      role: 'GURU',
+      subject: 'PAI',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_guru_3',
+      name: 'Budi Santoso, S.Pd.',
+      nip: '198501152010011025',
+      email: 'budi@matsamaga.sch.id',
+      role: 'GURU',
+      subject: 'Matematika',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_siswa_1',
+      name: 'Muhammad Raihan',
+      nis: '21220901',
+      email: 'raihan@matsamaga.sch.id',
+      role: 'SISWA',
+      classId: 'c_9a',
+      studentClass: 'IX A',
+      gender: 'L',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_siswa_2',
+      name: 'Siti Fatimah',
+      nis: '21220902',
+      email: 'fatimah@matsamaga.sch.id',
+      role: 'SISWA',
+      classId: 'c_9a',
+      studentClass: 'IX A',
+      gender: 'P',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_siswa_3',
+      name: 'Ahmad Danial Hakim',
+      nis: '21220903',
+      email: 'danial@matsamaga.sch.id',
+      role: 'SISWA',
+      classId: 'c_9a',
+      studentClass: 'IX A',
+      gender: 'L',
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'u_siswa_4',
+      name: 'Naila Zahra Khairunnisa',
+      nis: '21220904',
+      email: 'naila@matsamaga.sch.id',
+      role: 'SISWA',
+      classId: 'c_9b',
+      studentClass: 'IX B',
+      gender: 'P',
+      createdAt: new Date().toISOString()
+    }
+  ],
+  badges: [
+    {
+      id: 'b_first_game',
+      title: 'First Game',
+      description: 'Menyelesaikan kuis pertama di platform Matsamaga',
+      icon: 'Rocket',
+      condition: 'Menyelesaikan 1 kuis jenis apapun'
+    },
+    {
+      id: 'b_puzzle_solver',
+      title: 'Puzzle Solver',
+      description: 'Berhasil memecahkan teka-teki logika kata',
+      icon: 'Puzzle',
+      condition: 'Menyelesaikan kuis TTS atau Word Search'
+    },
+    {
+      id: 'b_speed_solver',
+      title: 'Speed Solver',
+      description: 'Menyelesaikan kuis dengan sisa waktu lebih dari 50%',
+      icon: 'Zap',
+      condition: 'Kecepatan pengerjaan tinggi'
+    },
+    {
+      id: 'b_perfect_score',
+      title: 'Perfect Score',
+      description: 'Mendapatkan nilai sempurna 100 tanpa salah',
+      icon: 'Award',
+      condition: 'Nilai 100'
+    },
+    {
+      id: 'b_quiz_master',
+      title: 'Quiz Master',
+      description: 'Menyelesaikan 5 kuis dengan nilai di atas KKTP',
+      icon: 'Crown',
+      condition: 'Menuntaskan 5 kuis berturut-turut'
+    },
+    {
+      id: 'b_tts_master',
+      title: 'TTS Master',
+      description: 'Mengisi seluruh kotak TTS dengan akurasi 100%',
+      icon: 'Grid',
+      condition: 'Akurasi TTS 100%'
+    },
+    {
+      id: 'b_wordsearch_master',
+      title: 'Word Search Master',
+      description: 'Menemukan seluruh kata tersembunyi dengan cepat',
+      icon: 'Search',
+      condition: 'Selesai Word Search sempurna'
+    }
+  ],
+  questions: [
+    {
+      id: 'q_demo_1',
+      question: 'Kegiatan menghasilkan barang atau jasa untuk menambah nilai guna disebut...',
+      answer: 'PRODUKSI',
+      options: ['PRODUKSI', 'KONSUMSI', 'DISTRIBUSI', 'INVESTASI'],
+      explanation: 'Produksi merupakan proses menciptakan atau menambah nilai guna suatu barang/jasa.',
+      hint: 'Diawali huruf P, menghasilkan nilai guna barang/jasa.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Kegiatan Ekonomi Pokok',
+      learningObjective: 'Memahami konsep kegiatan produksi dalam perekonomian modern.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Penalaran kritis'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_2',
+      question: 'Kegiatan menggunakan atau menghabiskan barang atau jasa untuk memenuhi kebutuhan disebut...',
+      answer: 'KONSUMSI',
+      options: ['DISTRIBUSI', 'KONSUMSI', 'PRODUKSI', 'TRANSAKSI'],
+      explanation: 'Konsumsi adalah tindakan menggunakan barang dan jasa guna memuaskan kebutuhan secara langsung.',
+      hint: 'Tindakan memakai atau membelanjakan barang dan jasa.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Kegiatan Ekonomi Pokok',
+      learningObjective: 'Mengidentifikasi perilaku konsumsi yang bijak dan beretika.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kemandirian'],
+      kbcValue: ['Cinta Diri dan Sesama'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_3',
+      question: 'Kegiatan menyalurkan barang atau jasa dari produsen kepada konsumen disebut...',
+      answer: 'DISTRIBUSI',
+      options: ['KOMUNIKASI', 'KONSUMSI', 'DISTRIBUSI', 'LOGISTIK'],
+      explanation: 'Distribusi adalah jembatan penghubung agar barang/jasa dapat sampai ke tangan pemakai akhir.',
+      hint: 'Pengiriman dan penyaluran barang dari sentra produksi ke pasar.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Kegiatan Ekonomi Pokok',
+      learningObjective: 'Menganalisis saluran distribusi modern dan digital.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Mudah',
+      profilLulusan: ['Penalaran kritis', 'Kolaborasi'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_4',
+      question: 'Platform perdagangan elektronik tempat bertemunya penjual dan pembeli secara daring disebut...',
+      answer: 'MARKETPLACE',
+      options: ['MARKETPLACE', 'SUPERMARKET', 'WARUNG', 'KOPERASI'],
+      explanation: 'Marketplace digital menyediakan lapak daring tempat transaksi barang dan jasa berlangsung.',
+      hint: 'Contohnya Tokopedia, Shopee, Bukalapak.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Perdagangan Daring',
+      learningObjective: 'Mengenal ekosistem perdagangan elektronik era digital.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Sedang',
+      profilLulusan: ['Kewargaan', 'Kreativitas'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_5',
+      question: 'Alat pembayaran elektronik yang tersimpan pada aplikasi gawai pintar disebut dompet...',
+      answer: 'DIGITAL',
+      options: ['KONVENSIONAL', 'DIGITAL', 'TUNAI', 'KERTAS'],
+      explanation: 'Dompet digital (e-wallet) menyimpan saldo uang elektronik untuk transaksi instan nontunai.',
+      hint: 'Bentuk modern dari dompet fisik, contoh GoPay atau OVO.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Sistem Pembayaran Digital',
+      learningObjective: 'Memahami instrumen transaksi nontunai modern.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kemandirian'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_6',
+      question: 'Standar kode matriks dua dimensi nasional untuk pembayaran nontunai di Indonesia disingkat...',
+      answer: 'QRIS',
+      options: ['QRIS', 'BARCODE', 'ATM', 'EDC'],
+      explanation: 'QRIS (Quick Response Code Indonesian Standard) distandarisasi oleh Bank Indonesia.',
+      hint: 'Singkatan yang diawali huruf Q, sering ditempel di kasir warung/toko.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Sistem Pembayaran Digital',
+      learningObjective: 'Mengetahui regulasi sistem pembayaran nasional Bank Indonesia.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Sedang',
+      profilLulusan: ['Kewargaan'],
+      kbcValue: ['Cinta Tanah Air'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_7',
+      question: 'Pelaku usaha yang berani mengambil risiko dan menciptakan inovasi baru dalam bisnis disebut...',
+      answer: 'WIRAUSAHA',
+      options: ['KARYAWAN', 'WIRAUSAHA', 'INVESTOR', 'KREDITUR'],
+      explanation: 'Wirausahawan (entrepreneur) adalah penggerak ekonomi yang menciptakan inovasi dan lapangan kerja.',
+      hint: 'Seseorang yang merintis usaha mandiri secara kreatif.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Kewirausahaan',
+      learningObjective: 'Menumbuhkan jiwa kewirausahaan yang tangguh dan kreatif.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kreativitas', 'Kemandirian'],
+      kbcValue: ['Cinta Tanah Air'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_8',
+      question: 'Kondisi kenaikan harga barang dan jasa secara umum dan terus menerus disebut...',
+      answer: 'INFLASI',
+      options: ['DEFLASI', 'INFLASI', 'STAGNASI', 'DEPRESIASI'],
+      explanation: 'Inflasi mengurangi daya beli uang terhadap barang-barang konsumsi pokok masyarakat.',
+      hint: 'Lawan kata dari deflasi, menyebabkan nilai riil uang menurun.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Gejala Moneter',
+      learningObjective: 'Menganalisis dampak inflasi terhadap daya beli keluarga.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Sedang',
+      profilLulusan: ['Penalaran kritis'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_9',
+      question: 'Bank sentral di Republik Indonesia yang berwenang mengatur kebijakan moneter adalah...',
+      answer: 'INDONESIA',
+      options: ['MANDIRI', 'BRI', 'INDONESIA', 'BCA'],
+      explanation: 'Bank Indonesia adalah bank sentral independen yang bertugas menjaga stabilitas nilai rupiah.',
+      hint: 'Bank sentral negara kita, Bank ...',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Lembaga Keuangan',
+      learningObjective: 'Memahami fungsi bank sentral dalam perekonomian.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kewargaan'],
+      kbcValue: ['Cinta Tanah Air'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_10',
+      question: 'Kegiatan menjual barang hasil produksi dalam negeri ke luar negeri disebut...',
+      answer: 'EKSPOR',
+      options: ['IMPOR', 'EKSPOR', 'BARTER', 'TRANSIT'],
+      explanation: 'Ekspor menghasilkan devisa berharga bagi pembangunan nasional.',
+      hint: 'Mengirim komoditas lokal ke pasar mancanegara.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Perdagangan Internasional',
+      learningObjective: 'Menganalisis peran ekspor dalam perolehan devisa negara.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kewargaan'],
+      kbcValue: ['Cinta Tanah Air'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_11',
+      question: 'Kegiatan membeli atau mendatangkan barang dari luar negeri ke dalam negeri disebut...',
+      answer: 'IMPOR',
+      options: ['EKSPOR', 'IMPOR', 'DISTRIBUSI', 'SUBSIDI'],
+      explanation: 'Impor dilakukan untuk memenuhi kebutuhan domestik yang belum mampu diproduksi sendiri.',
+      hint: 'Lawan dari ekspor, mendatangkan barang luar negeri.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Perdagangan Internasional',
+      learningObjective: 'Memahami neraca perdagangan internasional.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kewargaan'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_12',
+      question: 'Sistem ekonomi di mana ide, kekayaan intelektual, dan bakat manusia menjadi modal utama disebut ekonomi...',
+      answer: 'KREATIF',
+      options: ['KREATIF', 'TRADISIONAL', 'KOMANDO', 'LIBERAL'],
+      explanation: 'Ekonomi kreatif menitikberatkan pada keunggulan ide, seni, desain, musik, dan teknologi.',
+      hint: 'Sektor usaha berbasis ide cerdas, desain, seni, dan konten.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Ekonomi Kreatif',
+      learningObjective: 'Mengembangkan potensi kreativitas generasi muda madrasah.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Sedang',
+      profilLulusan: ['Kreativitas', 'Penalaran kritis'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_13',
+      question: 'Alat tukar yang sah dan diterima oleh masyarakat luas dalam kegiatan ekonomi disebut...',
+      answer: 'UANG',
+      options: ['EMAS', 'UANG', 'SAHAM', 'CEK'],
+      explanation: 'Uang berfungsi sebagai alat tukar umum, satuan hitung, dan penyimpan nilai.',
+      hint: 'Alat tukar resmi, berupa kertas atau logam.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Uang dan Perbankan',
+      learningObjective: 'Memahami sejarah dan fungsi uang.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kemandirian'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_14',
+      question: 'Lembaga keuangan yang mengumpulkan dana dari masyarakat dalam bentuk simpanan disebut...',
+      answer: 'BANK',
+      options: ['PASAR', 'BANK', 'KOPERASI', 'PEGADAIAN'],
+      explanation: 'Bank mengelola simpanan nasabah dan menyalurkannya dalam bentuk pembiayaan atau kredit.',
+      hint: 'Tempat menabung yang aman dan diawasi OJK.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Uang dan Perbankan',
+      learningObjective: 'Mengenal peran perbankan konvensional dan syariah.',
+      cognitiveLevel: 'C1',
+      difficulty: 'Mudah',
+      profilLulusan: ['Kewargaan'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_15',
+      question: 'Jumlah barang atau jasa yang ingin dibeli oleh konsumen pada berbagai tingkat harga disebut...',
+      answer: 'PERMINTAAN',
+      options: ['PENAWARAN', 'PERMINTAAN', 'PRODUKSI', 'SUBSIDI'],
+      explanation: 'Hukum permintaan menyatakan jika harga naik, jumlah permintaan cenderung turun ceteris paribus.',
+      hint: 'Kebutuhan pasar yang ingin dibeli konsumen.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Mekanisme Pasar',
+      learningObjective: 'Menganalisis hukum permintaan dan penawaran di pasar.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Sedang',
+      profilLulusan: ['Penalaran kritis'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_16',
+      question: 'Jumlah barang atau jasa yang ditawarkan oleh penjual pada berbagai tingkat harga disebut...',
+      answer: 'PENAWARAN',
+      options: ['PERMINTAAN', 'PENAWARAN', 'KONSUMSI', 'BARTER'],
+      explanation: 'Hukum penawaran menyatakan jika harga naik, produsen cenderung menambah jumlah barang yang dijual.',
+      hint: 'Kesediaan produsen menjual barang di pasar.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Mekanisme Pasar',
+      learningObjective: 'Menganalisis faktor-faktor penawaran pasar.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Sedang',
+      profilLulusan: ['Penalaran kritis'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_17',
+      question: 'Prinsip ekonomi syariah yang melarang adanya bunga uang berlebih atau tambahan tanpa hak disebut bebas...',
+      answer: 'RIBA',
+      options: ['ZAKAT', 'INFAQ', 'RIBA', 'SHODAQOH'],
+      explanation: 'Dalam ekonomi Islam, transaksi harus adil, berkah, menjauhi riba, gharar, dan maysir.',
+      hint: 'Tambahan bunga uang yang dilarang dalam syariat Islam.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Ekonomi dan Perbankan Syariah',
+      learningObjective: 'Menerapkan nilai-nilai kejujuran dan etika syariah dalam berekonomi.',
+      cognitiveLevel: 'C4',
+      difficulty: 'Sedang',
+      profilLulusan: ['Keimanan dan ketakwaan kepada Tuhan YME'],
+      kbcValue: ['Cinta Allah SWT dan Rasulullah'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_18',
+      question: 'Perusahaan rintisan berbasis inovasi teknologi internet yang berkembang cepat disebut perusahaan...',
+      answer: 'STARTUP',
+      options: ['STARTUP', 'BUMN', 'KOPERASI', 'FIRMA'],
+      explanation: 'Startup digital memanfaatkan teknologi komputasi untuk menyelesaikan masalah sehari-hari secara efisien.',
+      hint: 'Istilah bisnis rintisan teknologi digital, seperti Gojek atau Traveloka awal mula.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Ekosistem Bisnis Digital',
+      learningObjective: 'Memahami karakteristik perusahaan rintisan digital.',
+      cognitiveLevel: 'C2',
+      difficulty: 'Sedang',
+      profilLulusan: ['Kreativitas', 'Kemandirian'],
+      kbcValue: ['Cinta Ilmu'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_19',
+      question: 'Kemampuan individu untuk memahami, mengelola, dan mengambil keputusan keuangan secara bijak disebut literasi...',
+      answer: 'KEUANGAN',
+      options: ['DIGITAL', 'KEUANGAN', 'SAINS', 'BAHASA'],
+      explanation: 'Literasi keuangan membekali pelajar agar mampu menabung, berinvestasi, dan menghindari penipuan.',
+      hint: 'Berhubungan dengan pengelolaan tabungan, belanja, dan anggaran.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Literasi Finansial Pelajar',
+      learningObjective: 'Membiasakan sikap hemat, menabung, dan perencanaan keuangan sejak dini.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Sedang',
+      profilLulusan: ['Kemandirian', 'Penalaran kritis'],
+      kbcValue: ['Cinta Diri dan Sesama'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    },
+    {
+      id: 'q_demo_20',
+      question: 'Sikap tidak boros dan selalu mempertimbangkan manfaat sebelum membeli barang mencerminkan perilaku hidup...',
+      answer: 'HEMAT',
+      options: ['KONSUMTIF', 'HEMAT', 'MEWAH', 'PELIT'],
+      explanation: 'Gaya hidup hemat dan bersyukur adalah manifestasi ajaran mulia dalam kehidupan bermasyarakat.',
+      hint: 'Lawan dari boros, anjuran agama untuk tidak berlebih-lebihan.',
+      subject: 'IPS',
+      grade: 'IX',
+      phase: 'D',
+      topic: 'Perkembangan Ekonomi di Era Digital',
+      subtopic: 'Etika Konsumsi Madrasah',
+      learningObjective: 'Menerapkan pola hidup bersahaja dan bijaksana dalam konsumsi.',
+      cognitiveLevel: 'C3',
+      difficulty: 'Mudah',
+      profilLulusan: ['Keimanan dan ketakwaan kepada Tuhan YME', 'Kemandirian'],
+      kbcValue: ['Cinta Allah SWT dan Rasulullah', 'Cinta Diri dan Sesama'],
+      createdBy: 'u_guru_1',
+      createdAt: new Date().toISOString(),
+      status: 'APPROVED'
+    }
+  ],
+  quizzes: [],
+  results: [],
+  competitionRooms: [],
+  auditLogs: [
+    {
+      id: 'log_init',
+      action: 'SYSTEM_BOOT',
+      user: 'System Initializer',
+      role: 'SYSTEM',
+      details: 'Inisialisasi sistem Kuis Cerdas Matsamaga MTsN 5 Tegal',
+      timestamp: new Date().toISOString()
+    }
+  ]
+};
+
+// Generate Demo Quizzes linking the questions
+const demoQuestions = INITIAL_STATE.questions;
+const defaultSettings = {
+  randomizeQuestions: false,
+  randomizeOptions: true,
+  durationMinutes: 15,
+  allowHints: true,
+  immediateFeedback: true,
+  showLeaderboard: true,
+  showExplanation: 'IMMEDIATE' as const,
+  allowRetry: true,
+  kktp: 75,
+  privacyNameFormat: 'FULL_NAME' as const,
+  allowGuest: true,
+  scoreCorrect: 10,
+  scoreWrong: 0,
+  hintPenalty: 3,
+  speedBonusMax: 10,
+  perfectBonus: 20
+};
+
+INITIAL_STATE.quizzes = [
+  {
+    id: 'quiz_tts_demo',
+    code: 'KCM-9A7X2',
+    title: 'TTS: Perkembangan Ekonomi di Era Digital',
+    description: 'Teka-Teki Silang interaktif materi IPS Kelas 9 tentang kegiatan ekonomi, perdagangan daring, dan sistem pembayaran digital.',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'CROSSWORD',
+    questions: demoQuestions.slice(0, 10),
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 15
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a', 'c_9b'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+  },
+  {
+    id: 'quiz_ws_demo',
+    code: 'KCM-8W5R1',
+    title: 'Word Search: Istilah Ekonomi Digital',
+    description: 'Temukan istilah-istilah kunci perekonomian modern yang tersembunyi secara horizontal, vertikal, maupun diagonal!',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'WORD_SEARCH',
+    questions: demoQuestions.slice(3, 13),
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 10
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date(Date.now() - 3600000 * 18).toISOString()
+  },
+  {
+    id: 'quiz_mc_demo',
+    code: 'KCM-7P4G9',
+    title: 'Asesmen Formatif: Pilihan Ganda IPS 9',
+    description: 'Uji pemahaman komprehensif konsep kegiatan ekonomi, perbankan syariah, dan literasi finansial.',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'MULTIPLE_CHOICE',
+    questions: demoQuestions.slice(0, 15),
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 20
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a', 'c_9b'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  },
+  {
+    id: 'quiz_pg_demo',
+    code: 'KCM-6T2B4',
+    title: 'Tebak Gambar: Aktivitas Ekonomi Modern',
+    description: 'Amati gambar transaksi, pergudangan modern, dan ekosistem digital lalu tebak istilah yang paling tepat!',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'PICTURE_GUESS',
+    questions: [
+      {
+        ...demoQuestions[3], // Marketplace
+        imageUrl: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80',
+        question: 'Gambar berikut memperlihatkan platform belanja daring di gawai. Fasilitas transaksi virtual ini disebut...'
+      },
+      {
+        ...demoQuestions[5], // QRIS
+        imageUrl: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?auto=format&fit=crop&w=800&q=80',
+        question: 'Metode pembayaran dengan memindai kode matriks dua dimensi seperti gambar di atas dikenal dengan...'
+      },
+      {
+        ...demoQuestions[13], // Bank
+        imageUrl: 'https://images.unsplash.com/photo-1541354329998-f4d9a9f9297f?auto=format&fit=crop&w=800&q=80',
+        question: 'Gedung lembaga keuangan tempat mengamankan tabungan dan bertransaksi keuangan adalah...'
+      },
+      {
+        ...demoQuestions[9], // Ekspor
+        imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
+        question: 'Peti kemas kontainer di pelabuhan yang disiapkan berlayar ke negara lain merupakan proses...'
+      }
+    ],
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 10
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date(Date.now() - 3600000 * 8).toISOString()
+  },
+  {
+    id: 'quiz_sq_demo',
+    code: 'KCM-5K9Z3',
+    title: 'Kuis Cepat: Tantangan Kilat 10 Detik',
+    description: 'Jawab cepat dalam hitungan mundur 10 detik per soal. Uji reflek kognitif dan ketepatan berpikir!',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'SPEED_QUIZ',
+    questions: demoQuestions.slice(0, 10),
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 5
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
+  },
+  {
+    id: 'quiz_live_demo',
+    code: 'KCM-ROOM-9A',
+    title: 'Kompetisi Live Room: Duel Juara Kelas IX A',
+    description: 'Ruang kompetisi langsung kelas IX A MTsN 5 Tegal. Semua siswa bertanding real-time!',
+    subject: 'IPS',
+    grade: 'IX',
+    topic: 'Perkembangan Ekonomi di Era Digital',
+    type: 'COMPETITION',
+    questions: demoQuestions.slice(0, 12),
+    settings: {
+      ...defaultSettings,
+      durationMinutes: 15
+    },
+    status: 'ACTIVE',
+    targetClasses: ['c_9a'],
+    createdBy: 'u_guru_1',
+    createdAt: new Date().toISOString()
+  }
+];
+
+// Prepopulate a sample student result for analytics demonstration
+INITIAL_STATE.results = [
+  {
+    id: 'res_sample_1',
+    quizId: 'quiz_tts_demo',
+    quizTitle: 'TTS: Perkembangan Ekonomi di Era Digital',
+    quizType: 'CROSSWORD',
+    studentName: 'Muhammad Raihan',
+    studentClass: 'IX A',
+    userId: 'u_siswa_1',
+    score: 850,
+    percentage: 85,
+    correctCount: 8,
+    wrongCount: 2,
+    unansweredCount: 0,
+    timeSpentSeconds: 512,
+    completedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
+    answers: demoQuestions.slice(0, 10).map((q, idx) => ({
+      questionId: q.id,
+      userAnswer: idx === 8 ? 'BCA' : q.answer,
+      isCorrect: idx !== 8,
+      pointsEarned: idx !== 8 ? 10 : 0,
+      timeSpentSeconds: 30,
+      hintsUsedCount: idx === 3 ? 1 : 0
+    })),
+    badgesUnlocked: ['First Game', 'Puzzle Solver'],
+    predicate: 'Sangat Baik (B)'
+  },
+  {
+    id: 'res_sample_2',
+    quizId: 'quiz_tts_demo',
+    quizTitle: 'TTS: Perkembangan Ekonomi di Era Digital',
+    quizType: 'CROSSWORD',
+    studentName: 'Siti Fatimah',
+    studentClass: 'IX A',
+    userId: 'u_siswa_2',
+    score: 950,
+    percentage: 95,
+    correctCount: 9,
+    wrongCount: 1,
+    unansweredCount: 0,
+    timeSpentSeconds: 430,
+    completedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    answers: demoQuestions.slice(0, 10).map((q, idx) => ({
+      questionId: q.id,
+      userAnswer: idx === 9 ? 'IMPOR' : q.answer,
+      isCorrect: idx !== 9,
+      pointsEarned: idx !== 9 ? 10 : 0,
+      timeSpentSeconds: 25,
+      hintsUsedCount: 0
+    })),
+    badgesUnlocked: ['First Game', 'Puzzle Solver', 'Speed Solver'],
+    predicate: 'Istimewa (A)'
+  }
+];
+
+class DatabaseService {
+  private state: DatabaseState;
+
+  constructor() {
+    this.state = this.load();
+  }
+
+  private load(): DatabaseState {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+        const parsed = JSON.parse(raw);
+        let modified = false;
+
+        // Ensure teacher profile Supro, S.Pd. and developer identity are present
+        if (Array.isArray(parsed.users)) {
+          parsed.users = parsed.users.map((u: any) => {
+            if (u.id === 'u_guru_1' || u.name?.includes('Ahmad Fauzi')) {
+              modified = true;
+              return {
+                ...u,
+                id: 'u_guru_1',
+                name: 'Supro, S.Pd.',
+                nip: u.nip || '198205122009011012',
+                email: 'supro@matsamaga.sch.id',
+                role: 'GURU',
+                subject: 'IPS',
+                phone: u.phone || '081234567890',
+                isDeveloper: true
+              };
+            }
+            return u;
+          });
+
+          // If no guru exists with isDeveloper, add Supro, S.Pd.
+          if (!parsed.users.some((u: any) => u.name?.includes('Supro'))) {
+            parsed.users.unshift(INITIAL_STATE.users[1]);
+            modified = true;
+          }
+
+          // Ensure some sample students have NIS and studentClass
+          parsed.users = parsed.users.map((u: any) => {
+            if (u.role === 'SISWA') {
+              if (!u.studentClass && u.classId) {
+                const cls = (parsed.classes || []).find((c: any) => c.id === u.classId);
+                if (cls) {
+                  u.studentClass = cls.name;
+                  modified = true;
+                }
+              }
+              if (!u.nis) {
+                u.nis = `2122090${Math.floor(Math.random() * 90) + 10}`;
+                modified = true;
+              }
+            }
+            return u;
+          });
+        }
+
+        if (parsed.settings) {
+          if (parsed.settings.developerName !== 'Supro, S.Pd.') {
+            parsed.settings.developerName = 'Supro, S.Pd.';
+            parsed.settings.developerRole = 'Guru Mapel IPS & Pengembang Aplikasi KCM MTsN 5 Tegal';
+            parsed.settings.developerBio = 'Pendidik inovatif MTsN 5 Tegal yang merancang dan mengembangkan platform asesmen interaktif gamifikasi berbasis Kurikulum Merdeka Fase D & Kurikulum Berbasis Cinta (KBC).';
+            modified = true;
+          }
+        }
+
+        if (modified) {
+          this.save(parsed);
+        }
+        return parsed;
+      }
+    } catch (err) {
+      console.error('Failed to load database, falling back to initial:', err);
+    }
+    this.save(INITIAL_STATE);
+    return INITIAL_STATE;
+  }
+
+  public resetToInitial(): void {
+    this.state = JSON.parse(JSON.stringify(INITIAL_STATE));
+    this.save(this.state);
+  }
+
+  private save(state: DatabaseState): void {
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(state, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Error persisting database to file:', err);
+    }
+  }
+
+  public getState(): DatabaseState {
+    return this.state;
+  }
+
+  public updateState(updater: (prev: DatabaseState) => DatabaseState): void {
+    this.state = updater(this.state);
+    this.save(this.state);
+  }
+
+  // Helper getters and operations
+  public logAudit(action: string, user: string, role: string, details: string): void {
+    const log: AuditLog = {
+      id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      action,
+      user,
+      role,
+      details,
+      timestamp: new Date().toISOString()
+    };
+    this.updateState(prev => ({
+      ...prev,
+      auditLogs: [log, ...prev.auditLogs].slice(0, 200)
+    }));
+  }
+}
+
+export const db = new DatabaseService();

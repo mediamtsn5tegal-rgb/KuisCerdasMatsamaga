@@ -1,0 +1,7 @@
+{
+  "name": "Kuis Cerdas Matsamaga",
+  "description": "Platform kuis interaktif edukatif MTsN 5 Tegal untuk pembelajaran, asesmen, dan evaluasi berbasis game.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

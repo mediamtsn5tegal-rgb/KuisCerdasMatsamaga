@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Circular text paths -->
+    <!-- Top arc for MADRASAH TSANAWIYAH NEGERI 5 TEGAL -->
+    <path id="topTextArc" d="M 50,250 A 200,200 0 1,1 450,250" fill="none" />
+    <path id="topTextArcInner" d="M 65,250 A 185,185 0 1,1 435,250" fill="none" />
+    <!-- Bottom arc for MATSAMAGA -->
+    <path id="bottomTextArc" d="M 100,250 A 185,185 0 0,0 400,250" fill="none" />
+    <path id="bottomTextArcRev" d="M 380,260 A 180,180 0 0,1 120,260" fill="none" />
+
+    <!-- Gradients -->
+    <linearGradient id="goldWingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF08A" />
+      <stop offset="40%" stop-color="#FACC15" />
+      <stop offset="100%" stop-color="#EAB308" />
+    </linearGradient>
+
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="50%" stop-color="#065F46" />
+      <stop offset="100%" stop-color="#064E3B" />
+    </linearGradient>
+
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- Outer Ring Background -->
+  <circle cx="250" cy="250" r="242" fill="#047857" stroke="#064E3B" stroke-width="4" />
+  <circle cx="250" cy="250" r="236" fill="none" stroke="#FFFFFF" stroke-width="3.5" />
+
+  <!-- Inner border separating text band from center -->
+  <circle cx="250" cy="250" r="172" fill="none" stroke="#FFFFFF" stroke-width="3.5" />
+  <circle cx="250" cy="250" r="166" fill="#065F46" stroke="#047857" stroke-width="3" />
+
+  <!-- Circular Text: TOP - MADRASAH TSANAWIYAH NEGERI 5 TEGAL -->
+  <!-- We use text on path around the top outer band -->
+  <path id="upperBandPath" d="M 72,250 A 178,178 0 1,1 428,250" fill="none" />
+  <text fill="#FFFFFF" font-family="'Plus Jakarta Sans', 'Arial Black', Impact, sans-serif" font-weight="900" font-size="23.5" letter-spacing="2.2">
+    <textPath href="#upperBandPath" startOffset="50%" text-anchor="middle">
+      MADRASAH TSANAWIYAH NEGERI 5 TEGAL
+    </textPath>
+  </text>
+
+  <!-- Circular Text: BOTTOM - MATSAMAGA -->
+  <path id="lowerBandPath" d="M 115,265 A 180,180 0 0,0 385,265" fill="none" />
+  <text fill="#FACC15" font-family="'Plus Jakarta Sans', 'Arial Black', Impact, sans-serif" font-weight="900" font-size="34" letter-spacing="4">
+    <textPath href="#lowerBandPath" startOffset="50%" text-anchor="middle">
+      MATSAMAGA
+    </textPath>
+  </text>
+
+  <!-- Ribbon Ends on Left & Right with black/white fringe -->
+  <!-- Left ribbon fringe -->
+  <g transform="translate(68, 360) rotate(-35)">
+    <path d="M 0,0 L 25,0 L 25,16 L 0,16 Z" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.5" />
+    <circle cx="5" cy="8" r="2.5" fill="#1F2937" />
+    <circle cx="12" cy="8" r="2.5" fill="#1F2937" />
+    <circle cx="19" cy="8" r="2.5" fill="#1F2937" />
+    <line x1="0" y1="16" x2="25" y2="16" stroke="#1F2937" stroke-width="2" stroke-dasharray="2,2" />
+  </g>
+  <!-- Right ribbon fringe -->
+  <g transform="translate(432, 360) rotate(35) scale(-1, 1)">
+    <path d="M 0,0 L 25,0 L 25,16 L 0,16 Z" fill="#FFFFFF" stroke="#064E3B" stroke-width="1.5" />
+    <circle cx="5" cy="8" r="2.5" fill="#1F2937" />
+    <circle cx="12" cy="8" r="2.5" fill="#1F2937" />
+    <circle cx="19" cy="8" r="2.5" fill="#1F2937" />
+    <line x1="0" y1="16" x2="25" y2="16" stroke="#1F2937" stroke-width="2" stroke-dasharray="2,2" />
+  </g>
+
+  <!-- INNER EMBLEM ELEMENTS -->
+  <!-- Top 5-pointed Star (Yellow Gold) -->
+  <polygon points="250,92 255,108 272,108 258,118 263,134 250,124 237,134 242,118 228,108 245,108"
+    fill="#FACC15" stroke="#EAB308" stroke-width="1.5" />
+
+  <!-- Left Golden Wing Feathers -->
+  <g fill="url(#goldWingGrad)" stroke="#CA8A04" stroke-width="1.5">
+    <!-- Outer primary feather -->
+    <path d="M 230,135 C 190,140 130,175 105,245 C 95,270 98,300 115,325 C 122,315 130,290 145,260 C 160,230 195,195 230,175 Z" />
+    <!-- Second feather -->
+    <path d="M 230,180 C 180,205 130,250 120,310 C 125,325 135,335 155,340 C 158,320 170,285 195,255 C 215,230 230,210 230,180 Z" />
+    <!-- Third feather -->
+    <path d="M 225,220 C 180,250 145,295 145,345 C 160,355 180,358 198,355 C 198,335 205,305 220,280 C 228,265 230,250 225,220 Z" />
+    <!-- Inner feather layers -->
+    <path d="M 220,260 C 195,285 170,320 175,355 C 190,360 210,360 225,355 C 225,335 224,305 220,260 Z" />
+  </g>
+
+  <!-- Right Golden Wing Feathers (Mirror of Left) -->
+  <g fill="url(#goldWingGrad)" stroke="#CA8A04" stroke-width="1.5" transform="translate(500, 0) scale(-1, 1)">
+    <!-- Outer primary feather -->
+    <path d="M 230,135 C 190,140 130,175 105,245 C 95,270 98,300 115,325 C 122,315 130,290 145,260 C 160,230 195,195 230,175 Z" />
+    <!-- Second feather -->
+    <path d="M 230,180 C 180,205 130,250 120,310 C 125,325 135,335 155,340 C 158,320 170,285 195,255 C 215,230 230,210 230,180 Z" />
+    <!-- Third feather -->
+    <path d="M 225,220 C 180,250 145,295 145,345 C 160,355 180,358 198,355 C 198,335 205,305 220,280 C 228,265 230,250 225,220 Z" />
+    <!-- Inner feather layers -->
+    <path d="M 220,260 C 195,285 170,320 175,355 C 190,360 210,360 225,355 C 225,335 224,305 220,260 Z" />
+  </g>
+
+  <!-- Central Islamic Dome (Kubah Hijau) with White Border -->
+  <g>
+    <!-- Outer white border for the dome -->
+    <path d="M 250,128 C 242,148 208,185 208,218 C 208,235 218,245 228,248 L 272,248 C 282,245 292,235 292,218 C 292,185 258,148 250,128 Z"
+      fill="#FFFFFF" stroke="#047857" stroke-width="2" />
+    <!-- Inner green dome -->
+    <path d="M 250,134 C 244,152 214,188 214,218 C 214,232 222,242 232,244 L 268,244 C 278,242 286,232 286,218 C 286,188 256,152 250,134 Z"
+      fill="#047857" stroke="#10B981" stroke-width="1.5" />
+    <!-- Base collar of dome -->
+    <rect x="220" y="244" width="60" height="8" rx="2" fill="#FFFFFF" stroke="#065F46" stroke-width="1.5" />
+  </g>
+
+  <!-- Central Black Calligraphy Pen Nib (Mata Pena) -->
+  <g>
+    <!-- White outer border of pen nib -->
+    <path d="M 250,345 L 188,272 L 216,252 L 284,252 L 312,272 Z"
+      fill="#FFFFFF" stroke="#064E3B" stroke-width="2" />
+    <!-- Black pen body -->
+    <path d="M 250,340 L 194,274 L 220,256 L 280,256 L 306,274 Z"
+      fill="#18181B" stroke="#27272A" stroke-width="1" />
+    <!-- White pen nib slit & breathing hole -->
+    <circle cx="250" cy="278" r="9" fill="none" stroke="#FFFFFF" stroke-width="4" />
+    <line x1="250" y1="287" x2="250" y2="338" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Open Book (Al-Qur'an / Kitab Suci) at Bottom -->
+  <g id="openBook">
+    <!-- White open book base with red upper border -->
+    <!-- Red spine / ribbon marker -->
+    <path d="M 148,345 L 250,380 L 352,345 L 345,362 L 250,396 L 155,362 Z" fill="#DC2626" stroke="#991B1B" stroke-width="1.5" />
+    <!-- White pages -->
+    <path d="M 154,364 L 250,398 L 346,364 L 340,378 L 250,410 L 160,378 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="1.5" />
+    <!-- Green chevron foundation border under book -->
+    <path d="M 160,380 L 250,412 L 340,380" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" />
+  </g>
+</svg>
