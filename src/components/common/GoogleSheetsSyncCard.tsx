@@ -58,7 +58,7 @@ type SyncActionType = 'TWO_WAY' | 'PUSH' | 'PULL' | 'CLEAR_DEMO';
 export const GoogleSheetsSyncCard: React.FC<Props> = ({
   compact = false,
   onSuccess,
-  initialTab = 'APPS_SCRIPT'
+  initialTab = 'SHEETS_API'
 }) => {
   const { showToast, triggerRefresh } = useApp();
   const [googleUser, setGoogleUser] = useState<AppGoogleUser | null>(null);
@@ -174,15 +174,37 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
   };
 
   const handleCreateNewSpreadsheet = async () => {
-    if (!accessToken) {
-      // Prompt user to sign in
-      handleSignIn();
+    let token = accessToken;
+    if (!token) {
+      setLoading(true);
+      try {
+        const authRes = await googleSignIn(false);
+        if (authRes?.accessToken) {
+          token = authRes.accessToken;
+          setGoogleUser(authRes.user);
+          setAccessToken(token);
+          showToast('Akun Google berhasil terhubung! Membuat spreadsheet...', 'success');
+        } else {
+          setLoading(false);
+          return;
+        }
+      } catch (authErr: any) {
+        console.error('Google Sign In Error:', authErr);
+        const parsed = parseGoogleAuthError(authErr);
+        setErrorModalInfo(parsed);
+        setLoading(false);
+        return;
+      }
+    }
+
+    if (!token) {
+      setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
-      const created = await createMadrasahSpreadsheet(accessToken, 'MTsN 5 Tegal');
+      const created = await createMadrasahSpreadsheet(token, 'MTsN 5 Tegal');
       setSpreadsheetId(created.spreadsheetId);
       setSpreadsheetUrl(created.spreadsheetUrl);
 
@@ -201,7 +223,7 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
 
       // Auto sync all current data into the newly created sheet
       setSyncing(true);
-      await syncAllDataToGoogleSheets(accessToken, created.spreadsheetId);
+      await syncAllDataToGoogleSheets(token, created.spreadsheetId);
       setLastSync(new Date().toISOString());
       showToast('Semua data dan hasil asesmen berhasil disinkronkan ke Spreadsheet!', 'success');
       if (onSuccess) onSuccess();
@@ -588,7 +610,7 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
               </div>
             ) : (
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto shadow-2xs">
                   <FileSpreadsheet className="w-6 h-6" />
                 </div>
                 <div>
@@ -600,19 +622,32 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
                   </p>
                 </div>
 
+                {googleUser && (
+                  <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full text-xs text-emerald-900 mx-auto">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Akun terhubung: <b>{googleUser.email || googleUser.displayName}</b></span>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
                   <button
                     onClick={handleCreateNewSpreadsheet}
                     disabled={loading}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
                   >
                     <PlusCircle className="w-4 h-4" />
-                    <span>Buat Spreadsheet MTsN 5 Tegal Otomatis</span>
+                    <span>
+                      {loading
+                        ? 'Memproses...'
+                        : googleUser
+                        ? 'Buat Spreadsheet MTsN 5 Tegal Sekarang'
+                        : 'Hubungkan Akun Google & Buat Spreadsheet'}
+                    </span>
                   </button>
 
                   <button
                     onClick={() => setShowInputCustom(!showInputCustom)}
-                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all cursor-pointer"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                   >
                     <Link2 className="w-4 h-4" />
                     <span>Gunakan Spreadsheet yang Sudah Ada</span>
