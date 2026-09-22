@@ -159,8 +159,34 @@ export const signInWithGsi = async (): Promise<{ user: AppGoogleUser; accessToke
  */
 export const parseGoogleAuthError = (error: any): GoogleAuthErrorInfo => {
   const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://localhost:3000';
   const code = error?.code || '';
   const msg = error?.message || String(error);
+
+  if (
+    code.includes('origin_mismatch') ||
+    msg.includes('origin_mismatch') ||
+    msg.includes('origin mismatch') ||
+    msg.includes('Error 400') ||
+    msg.includes('400')
+  ) {
+    return {
+      code: 'google/origin-mismatch',
+      title: 'Error 400: origin_mismatch (Asal JavaScript Belum Didaftarkan)',
+      message: `Google OAuth memblokir login karena URL web saat ini ("${currentOrigin}") belum didaftarkan di daftar "Authorized JavaScript origins" (Asal JavaScript yang diotorisasi) pada Google Cloud Console.`,
+      currentDomain: currentOrigin,
+      solutionSteps: [
+        `CARA CEPAT & BEBAS ERROR: Gunakan "Metode 2: Google Apps Script" (tab hijau toska). Metode ini 100% langsung bekerja tanpa konfigurasi domain/Google Cloud!`,
+        `JIKA INGIN MEMPERBAIKI DI GOOGLE CLOUD: Buka Google Cloud Console > APIs & Services > Credentials.`,
+        `Klik nama OAuth 2.0 Client ID (${firebaseConfig.oAuthClientId?.substring(0, 20)}...).`,
+        `Di bagian "Authorized JavaScript origins", klik "+ ADD URI" lalu tempelkan: "${currentOrigin}" (pastikan tanpa garis miring di akhir).`,
+        `Klik tombol SIMPAN (Save), tunggu 1-2 menit, lalu coba hubungkan kembali.`
+      ],
+      actionLink: `https://console.cloud.google.com/apis/credentials?project=${firebaseConfig.projectId}`,
+      actionLinkLabel: 'Buka Kredensial di Google Cloud Console',
+      canTryGsi: false
+    };
+  }
 
   if (code.includes('unauthorized-domain') || msg.includes('unauthorized-domain')) {
     return {

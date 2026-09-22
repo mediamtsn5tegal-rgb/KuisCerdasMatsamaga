@@ -79,6 +79,7 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
   const [activeTab, setActiveTab] = useState<'SHEETS_API' | 'APPS_SCRIPT'>(initialTab);
   const [errorModalInfo, setErrorModalInfo] = useState<GoogleAuthErrorInfo | null>(null);
   const [copiedDomain, setCopiedDomain] = useState(false);
+  const [copiedOrigin, setCopiedOrigin] = useState(false);
   const [copiedScript, setCopiedScript] = useState(false);
   const [inputAppsScriptUrl, setInputAppsScriptUrl] = useState('');
   const [savingAppsScript, setSavingAppsScript] = useState(false);
@@ -299,6 +300,14 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
     setCopiedDomain(true);
     setTimeout(() => setCopiedDomain(false), 2500);
     showToast(`Domain "${domain}" disalin ke clipboard!`, 'success');
+  };
+
+  const handleCopyCurrentOrigin = () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    navigator.clipboard.writeText(origin);
+    setCopiedOrigin(true);
+    setTimeout(() => setCopiedOrigin(false), 2500);
+    showToast(`Asal JavaScript "${origin}" disalin ke clipboard!`, 'success');
   };
 
   const handleCopyAppsScript = () => {
@@ -650,7 +659,16 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
                     className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition-all cursor-pointer shadow-2xs"
                   >
                     <Link2 className="w-4 h-4" />
-                    <span>Gunakan Spreadsheet yang Sudah Ada</span>
+                    <span>Gunakan Spreadsheet yang Ada</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('APPS_SCRIPT')}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Sparkles className="w-4 h-4 text-teal-600" />
+                    <span>Alternatif: Google Apps Script (Bebas Error 400)</span>
                   </button>
                 </div>
               </div>
@@ -723,9 +741,38 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
                     </p>
                   </div>
 
+                  <div className="bg-rose-50 p-2.5 rounded-lg border border-rose-200 space-y-1.5">
+                    <b className="text-rose-900 block">
+                      ⚠️ Solusi 3 (Mengatasi Google Error 400: origin_mismatch):
+                    </b>
+                    <p className="text-[11px] text-rose-950">
+                      Pesan <i>"Error 400: origin_mismatch"</i> muncul saat Google OAuth memeriksa alamat web tempat tombol diklik, namun alamat URL asal web tersebut belum dicantumkan di <b>Google Cloud Console</b>.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 py-1">
+                      <span className="font-semibold text-slate-700">URL Asal (Origin) saat ini:</span>
+                      <code className="bg-white text-rose-800 font-mono font-bold px-2 py-0.5 rounded border border-rose-300">
+                        {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}
+                      </code>
+                      <button
+                        onClick={handleCopyCurrentOrigin}
+                        className="px-2.5 py-1 bg-rose-700 hover:bg-rose-800 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-all shadow-2xs"
+                      >
+                        {copiedOrigin ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span>{copiedOrigin ? 'Tersalin!' : 'Salin URL Asal'}</span>
+                      </button>
+                    </div>
+                    <div className="text-[10px] text-slate-600 space-y-0.5 pt-0.5">
+                      <p><b>Cara Atasi (2 Menit):</b></p>
+                      <p>1. Buka <a href="https://console.cloud.google.com/apis/credentials?project=gen-lang-client-0622795059" target="_blank" rel="noreferrer" className="text-rose-700 font-bold underline">Google Cloud Console &gt; Kredensial</a>.</p>
+                      <p>2. Klik nama <b>Klien OAuth 2.0 Web</b> Anda.</p>
+                      <p>3. Di bagian <b>"Asal JavaScript yang diotorisasi" (Authorized JavaScript origins)</b>, klik <b>+ TAMBAHKAN URI (+ ADD URI)</b>.</p>
+                      <p>4. Tempelkan URL Asal di atas, lalu klik tombol <b>SIMPAN</b>.</p>
+                    </div>
+                  </div>
+
                   <div className="bg-white/80 p-2.5 rounded-lg border border-amber-200 space-y-1">
                     <b className="text-amber-900 block mb-1">
-                      🛠️ Solusi 2 (Mengatasi Firebase Error: auth/unauthorized-domain):
+                      🛠️ Solusi 4 (Mengatasi Firebase Error: auth/unauthorized-domain):
                     </b>
                     <p>
                       Jika muncul error Firebase saat klik tombol login, hal ini karena domain aplikasi Anda saat ini belum didaftarkan di Firebase Console.
@@ -984,6 +1031,30 @@ export const GoogleSheetsSyncCard: React.FC<Props> = ({
               <p className="font-medium text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                 {errorModalInfo.message}
               </p>
+
+              {/* If origin mismatch error, show origin copy box */}
+              {errorModalInfo.code === 'google/origin-mismatch' && (
+                <div className="bg-rose-50 p-3 rounded-xl border border-rose-200 space-y-2">
+                  <span className="text-xs font-bold text-rose-900 block">
+                    URL Asal JavaScript (Origin) yang Harus Didaftarkan:
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 bg-white font-mono font-bold text-rose-800 text-xs px-3 py-2 rounded-lg border border-rose-300 select-all">
+                      {errorModalInfo.currentDomain}
+                    </code>
+                    <button
+                      onClick={handleCopyCurrentOrigin}
+                      className="px-3 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                    >
+                      {copiedOrigin ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedOrigin ? 'Tersalin' : 'Salin'}</span>
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-rose-800">
+                    Buka Google Cloud Console &gt; Credentials &gt; Web Client &gt; Tambahkan URL di atas ke <b>"Authorized JavaScript origins"</b>.
+                  </p>
+                </div>
+              )}
 
               {/* If domain error, show domain copy box */}
               {errorModalInfo.code === 'auth/unauthorized-domain' && (
