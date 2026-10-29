@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerdas Cermat Arena IPS - MTs N 5 Tegal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Standalone Multi-Device & Broadcast Relay System (No Permission Error) -->
+    <script>
+        // Channel Komunikasi Realtime Bebas Kendala Permission
+        window.QuizRelay = {
+            channel: null,
+            init(roomId) {
+                try {
+                    this.channel = new BroadcastChannel('mtsn5_quiz_' + roomId);
+                    this.channel.onmessage = (event) => {
+                        if (window.handleRelayMessage) {
+                            window.handleRelayMessage(event.data);
+                        }
+                    };
+                } catch(e) {
+                    console.log("BroadcastChannel active fallback");
+                }
+            },
+            send(data) {
+                if (this.channel) {
+                    try { this.channel.postMessage(data); } catch(e){}
+                }
+            }
+        };
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            gold: '#FFD700',
+                            emerald: '#059669',
+                            blue: '#0284C7',
+                            red: '#EF4444',
+                            purple: '#8B5CF6',
+                            dark: '#0F172A'
+                        }
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 15px rgba(255,215,0,0.4)' },
+                            '50%': { transform: 'scale(1.03)', boxShadow: '0 0 30px rgba(255,215,0,0.8)' },
+                        },
+                        bounceShort: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        }
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 1.5s infinite ease-in-out',
+                        'bounce-short': 'bounceShort 1.2s infinite ease-in-out'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #064e3b 0%, #0f172a 50%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-3d {
+            transition: all 0.1s ease;
+            position: relative;
+            top: 0;
+        }
+        .btn-3d:active {
+            top: 4px;
+            box-shadow: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between overflow-x-hidden">
+
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="w-full px-6 py-4 glass-panel sticky top-0 z-40 flex justify-between items-center border-b border-white/10">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-amber-300 flex items-center justify-center text-2xl text-slate-900 font-bold shadow-lg shadow-emerald-900/40 animate-bounce-short">
+                <i class="fa-solid fa-earth-asia"></i>
+            </div>
+            <div>
+                <h1 class="font-fredoka text-xl sm:text-2xl font-bold tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-emerald-300 to-sky-300">
+                    CERDAS CERMAT IPS - MTs N 5 TEGAL
+                </h1>
+                <p class="text-xs text-emerald-200/90 hidden sm:block">Materi: Potensi Indonesia Menjadi Negara Maju</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button onclick="toggleFullscreen()" title="Layar Penuh" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-white border border-white/10 flex items-center gap-2">
+                <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
+                <span class="text-xs font-semibold hidden md:inline">Fullscreen</span>
+            </button>
+            <button id="soundToggleBtn" onclick="toggleSound()" title="Efek Suara" class="px-3 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition flex items-center gap-2">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                <span id="soundStatusText" class="text-xs font-semibold hidden md:inline">Suara: ON</span>
+            </button>
+            <button onclick="openShareModal()" class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-sm shadow-lg shadow-sky-900/40 flex items-center gap-2 btn-3d">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span class="hidden md:inline">Bagikan Link Siswa</span>
+            </button>
+            <button onclick="openEditorModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-900/40 flex items-center gap-2 btn-3d">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span class="hidden md:inline">Kelola Soal</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center">
+
+        <!-- ==================== SETUP / MENU UTAMA ==================== -->
+        <section id="setupScreen" class="w-full max-w-4xl glass-panel rounded-3xl p-6 md:p-10 my-auto shadow-2xl transition-all duration-300 border border-emerald-500/30">
+            
+            <!-- PANEL MODE BERMAIN: SINGLE DEVICE VS ONLINE MULTIPLAYER -->
+            <div class="mb-6 p-4 rounded-2xl bg-slate-900/90 border border-sky-400/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 border border-sky-400/40 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-globe"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Mode Permainan Online Bersama</h4>
+                        <p class="text-xs text-slate-300">Buat room untuk dibagikan ke HP kelompok siswa secara real-time</p>
+                    </div>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button onclick="initOnlineRoom()" class="flex-1 sm:flex-none px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 btn-3d">
+                        <i class="fa-solid fa-plus-circle"></i> Buat Room Baru
+                    </button>
+                    <button onclick="joinOnlineRoomPrompt()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-500/30 border border-emerald-400/40 hover:bg-emerald-500/50 text-emerald-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Gabung PIN Room
+                    </button>
+                </div>
+            </div>
+
+            <!-- PIN ROOM DISPLAY (JIKA ONLINE) -->
+            <div id="activeRoomBadge" class="hidden mb-6 p-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-center">
+                <span class="text-xs font-bold text-amber-300 uppercase tracking-widest block">PIN Room Aktif Siswa</span>
+                <span id="roomPinText" class="font-fredoka text-3xl font-bold text-white tracking-widest">---</span>
+                <p class="text-[11px] text-slate-300 mt-1">Status: Bagikan PIN/Link di atas ke HP tiap kelompok siswa</p>
+            </div>
+
+            <div class="text-center mb-8">
+                <span class="px-3 py-1 bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 rounded-full text-xs font-bold uppercase tracking-wider">
+                    🏛️ MTs N 5 TEGAL - KELAS 8/9 IPS
+                </span>
+                <h2 class="font-fredoka text-3xl md:text-4xl font-bold text-white mt-2 mb-2">Kompetisi Kelompok IPS 🇲🇨</h2>
+                <p class="text-slate-300 text-sm md:text-base">Mengkaji Potensi Indonesia Menjadi Negara Maju melalui Kuis Interaktif</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- SISI KIRI: ATUR TIM -->
+                <div class="space-y-5">
+                    <h3 class="font-bold text-lg text-amber-300 flex items-center gap-2 border-b border-white/10 pb-2">
+                        <i class="fa-solid fa-users-rectangle"></i> Tim Kelompok Bertanding (2 - 4 Tim)
+                    </h3>
+                    
+                    <div id="teamInputsContainer" class="space-y-3">
+                        <!-- Tim diproduksi via JS -->
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="addTeamInput()" id="addTeamBtn" class="flex-1 py-2.5 rounded-xl border border-dashed border-white/30 text-slate-300 hover:bg-white/10 hover:text-white transition text-xs font-bold flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Tambah Tim
+                        </button>
+                        <button onclick="removeTeamInput()" id="removeTeamBtn" class="px-4 py-2.5 rounded-xl border border-white/10 text-red-400 hover:bg-red-500/20 transition text-xs font-bold">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SISI KANAN: ATUR ATURAN GAME -->
+                <div class="space-y-5">
+                    <h3 class="font-bold text-lg text-sky-300 flex items-center gap-2 border-b border-white/10 pb-2">
+                        <i class="fa-solid fa-sliders"></i> Aturan Permainan
+                    </h3>
+
+                    <!-- Sub-Materi IPS -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Materi Fokus Kuis</label>
+                        <select id="categorySelect" class="w-full bg-slate-900/90 border border-emerald-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 font-semibold text-sm">
+                            <option value="all">🌐 Semua Sub-Materi (Lengkap 30 Soal MTs)</option>
+                            <option value="pengertian">📚 1. Pengertian & Konsep Negara Maju</option>
+                            <option value="undp">📊 2. Kriteria Negara Maju Menurut UNDP</option>
+                            <option value="kategori">🗺️ 3. Kategori Kawasan & Wilayah</option>
+                            <option value="contoh">🌏 4. Contoh Negara-Negara Maju Dunia</option>
+                            <option value="ciri">🏭 5. Ciri-Ciri Utama Negara Maju</option>
+                            <option value="potensi_id">🇮🇩 6. Faktor Potensi Indonesia Jadi Negara Maju</option>
+                            <option value="custom">✏️ Soal Kustom (Buatan Guru MTsN 5 Tegal)</option>
+                        </select>
+                    </div>
+
+                    <!-- Mode Permainan Mode -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Mode Kompetisi</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" onclick="selectGameMode('buzzer')" id="modeBuzzerBtn" class="py-3 px-3 rounded-xl border-2 border-emerald-400 bg-emerald-500/20 text-white font-bold text-sm flex flex-col items-center justify-center gap-1 transition">
+                                <i class="fa-solid fa-bolt text-amber-400 text-lg"></i>
+                                Rebutan (Buzzer)
+                            </button>
+                            <button type="button" onclick="selectGameMode('turn')" id="modeTurnBtn" class="py-3 px-3 rounded-xl border-2 border-white/10 bg-slate-800/40 text-slate-400 font-bold text-sm flex flex-col items-center justify-center gap-1 transition">
+                                <i class="fa-solid fa-arrows-rotate text-sky-400 text-lg"></i>
+                                Bergantian (Turn)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Jumlah Soal & Timer -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Jumlah Soal</label>
+                            <select id="questionCountSelect" class="w-full bg-slate-900/90 border border-white/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 font-semibold">
+                                <option value="6">6 Soal Singkat</option>
+                                <option value="10">10 Soal Standard</option>
+                                <option value="15">15 Soal Sedang</option>
+                                <option value="30" selected>30 Soal Lengkap (Semua Materi)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Waktu per Soal</label>
+                            <select id="timerSelect" class="w-full bg-slate-900/90 border border-white/20 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400 font-semibold">
+                                <option value="20">20 Detik</option>
+                                <option value="30" selected>30 Detik</option>
+                                <option value="45">45 Detik</option>
+                                <option value="0">Tanpa Waktu</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOMBOL MULAI GAME -->
+            <div class="mt-8 pt-6 border-t border-white/10 text-center">
+                <button onclick="startGame()" class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-300 hover:from-emerald-400 hover:to-amber-200 text-slate-950 font-fredoka text-2xl font-bold rounded-2xl shadow-xl shadow-emerald-950/60 transform hover:-translate-y-1 transition btn-3d">
+                    <i class="fa-solid fa-flag-checkered mr-2"></i> MULAI ARENA CERDAS CERMAT!
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== ARENA PERMAINAN (GAMEPLAY) ==================== -->
+        <section id="gameplayScreen" class="w-full max-w-6xl hidden flex-col gap-6">
+
+            <!-- HEADER BAR GAMEPLAY: TIMER, ROUND, CATEGORY -->
+            <div class="glass-panel rounded-2xl p-4 flex flex-wrap justify-between items-center gap-4 border border-emerald-500/20">
+                <div class="flex items-center gap-3">
+                    <span id="gameCategoryBadge" class="px-3 py-1 bg-amber-400/20 border border-amber-400/40 rounded-lg text-amber-300 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap"></i> IPS MTsN 5 Tegal
+                    </span>
+                    <span id="roundBadge" class="text-white font-fredoka text-lg">
+                        Soal <span id="currentQuestionNum" class="text-amber-300">1</span>/<span id="totalQuestionsNum">30</span>
+                    </span>
+                </div>
+
+                <!-- TIMER DISPLAY -->
+                <div id="timerContainer" class="flex items-center gap-3 bg-slate-900/90 border border-amber-400/30 px-5 py-2 rounded-xl shadow-inner">
+                    <i class="fa-solid fa-stopwatch text-amber-300 text-xl animate-pulse"></i>
+                    <span id="timerDisplay" class="font-fredoka text-2xl font-bold text-amber-300 w-12 text-center">30</span>
+                    <span class="text-xs text-slate-400">detik</span>
+                </div>
+
+                <!-- STATUS TURN / BUZZER -->
+                <div id="activeTeamStatus" class="px-4 py-2 rounded-xl bg-white/10 border border-white/10 text-sm font-bold text-slate-200 flex items-center gap-2">
+                    <div id="activeTeamIndicatorDot" class="w-3 h-3 rounded-full bg-amber-400 animate-ping"></div>
+                    <span id="activeTeamStatusText">Menunggu Buzzer...</span>
+                </div>
+            </div>
+
+            <!-- MAIN GAME GRID: ARENA SOAL & LIVE BAR LEADERBOARD -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- KOLOM KIRI (2 SPAN): KARTU SOAL & BUZZER -->
+                <div class="lg:col-span-2 flex flex-col gap-6">
+                    
+                    <!-- KARTU SOAL UTAMA -->
+                    <div class="glass-panel rounded-3xl p-6 md:p-8 flex flex-col justify-between min-h-[420px] relative overflow-hidden border border-emerald-500/30">
+                        
+                        <!-- DEKORASI BACKGROUND -->
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div>
+                            <!-- SUB-MATERI BADGE & VISUAL ICON -->
+                            <div class="flex items-center justify-between mb-4">
+                                <span id="subTopicTag" class="px-3 py-1 bg-sky-500/20 text-sky-300 rounded-md text-xs font-bold border border-sky-400/30">
+                                    Sub-Materi IPS
+                                </span>
+                                <span id="questionIconBadge" class="w-12 h-12 rounded-2xl bg-slate-800/80 border border-white/20 flex items-center justify-center text-2xl text-amber-300 shadow-inner">
+                                    <i class="fa-solid fa-question"></i>
+                                </span>
+                            </div>
+
+                            <!-- TEXT SOAL -->
+                            <h3 id="questionText" class="font-fredoka text-xl md:text-2xl font-bold text-white leading-relaxed mb-6">
+                                Memuat Pertanyaan...
+                            </h3>
+                        </div>
+
+                        <!-- BUZZER CONTAINER -->
+                        <div id="buzzerSection" class="my-3">
+                            <p class="text-center text-xs font-bold text-emerald-200/80 mb-2.5 uppercase tracking-wider">Tombol Buzzer Kelompok</p>
+                            <div id="buzzerButtonsGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <!-- Tombol buzzer tim dibuat dinamis JS -->
+                            </div>
+                        </div>
+
+                        <!-- PILIHAN JAWABAN (A, B, C, D) -->
+                        <div id="optionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-2">
+                            <!-- Opsi dibuat dinamis oleh JS -->
+                        </div>
+
+                        <!-- BANNER SOAL TERKUNCI (DIKERJAKAN KELOMPOK LAIN) -->
+                        <div id="lockedQuestionBanner" class="hidden my-4 p-4 rounded-2xl bg-rose-500/20 border border-rose-500/50 text-center animate-pulse">
+                            <i class="fa-solid fa-lock text-rose-400 text-2xl mb-1"></i>
+                            <h4 class="font-bold text-rose-300 text-sm">Soal Ini Sudah Dikerjakan Kelompok Lain!</h4>
+                            <p class="text-xs text-slate-200 mt-0.5">Kelompok Anda tidak bisa lagi menjawab soal ini. Menunggu soal berikutnya...</p>
+                        </div>
+
+                        <!-- KOTAK PEMBAHASAN EDUKATIF (Tampil setelah dijawab) -->
+                        <div id="explanationBox" class="hidden mt-4 p-4 rounded-2xl bg-slate-900/90 border border-amber-400/40 text-xs md:text-sm text-slate-200 leading-relaxed shadow-lg">
+                            <div class="font-bold text-amber-300 mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-book-open"></i> Pembahasan Edukatif IPS:
+                            </div>
+                            <div id="explanationText">
+                                Penjelasan materi kuis akan muncul di sini.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- POWER-UP KELOMPOK / BANTUAN -->
+                    <div id="powerupContainer" class="glass-panel rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 border border-emerald-500/20">
+                        <span class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Bantuan Tim Aktif:
+                        </span>
+                        <div class="flex gap-2">
+                            <button id="powerup5050" onclick="usePowerup('5050')" class="px-3.5 py-2 rounded-xl bg-indigo-600/40 hover:bg-indigo-600/70 border border-indigo-400/40 text-indigo-200 text-xs font-bold flex items-center gap-1.5 transition btn-3d">
+                                <i class="fa-solid fa-scissors"></i> 50:50
+                            </button>
+                            <button id="powerupDouble" onclick="usePowerup('double')" class="px-3.5 py-2 rounded-xl bg-amber-600/40 hover:bg-amber-600/70 border border-amber-400/40 text-amber-200 text-xs font-bold flex items-center gap-1.5 transition btn-3d">
+                                <i class="fa-solid fa-star"></i> 2x Skor
+                            </button>
+                            <button id="powerupTime" onclick="usePowerup('time')" class="px-3.5 py-2 rounded-xl bg-teal-600/40 hover:bg-teal-600/70 border border-teal-400/40 text-teal-200 text-xs font-bold flex items-center gap-1.5 transition btn-3d">
+                                <i class="fa-solid fa-clock-rotate-left"></i> +15 Dtk
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- KOLOM KANAN (1 SPAN): PAPAN SKOR LIVE & VISUAL BAR CHART -->
+                <div class="glass-panel rounded-3xl p-6 flex flex-col justify-between border border-emerald-500/30">
+                    <div>
+                        <h3 class="font-fredoka text-xl font-bold text-white mb-4 flex items-center justify-between border-b border-white/10 pb-3">
+                            <span><i class="fa-solid fa-trophy text-amber-400 mr-2"></i> Skor Kelompok</span>
+                            <span class="text-xs font-sans text-emerald-300 font-semibold">Live MTsN 5</span>
+                        </h3>
+
+                        <!-- LIST KARTU SKOR TIM -->
+                        <div id="liveLeaderboardList" class="space-y-3.5 mb-6">
+                            <!-- Dihasilkan oleh JS -->
+                        </div>
+                    </div>
+
+                    <!-- VISUAL BAR SKOR COMPARISON -->
+                    <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4">
+                        <p class="text-xs font-bold text-emerald-300 mb-3 uppercase tracking-wider text-center">Grafik Poin Real-time</p>
+                        <div id="scoreBarsContainer" class="flex items-end justify-around h-32 pt-4 px-2 border-b border-slate-700 gap-2">
+                            <!-- Batang grafik dibuat JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ==================== LAYAR PEMENANG / PODIUM ==================== -->
+        <section id="winnerScreen" class="w-full max-w-4xl glass-panel rounded-3xl p-8 md:p-12 text-center hidden my-auto shadow-2xl border border-amber-400/40">
+            <div class="mb-6">
+                <span class="px-4 py-1.5 bg-amber-400/20 border border-amber-400/40 rounded-full text-amber-300 font-bold text-xs uppercase tracking-widest">
+                    🏆 APRESIASI CERDAS CERMAT IPS MTs N 5 TEGAL 🏆
+                </span>
+                <h2 class="font-fredoka text-3xl md:text-5xl font-bold text-white mt-3">JUARA UTAMA KELOMPOK!</h2>
+            </div>
+
+            <!-- PODIUM JUARA (JUARA 2, JUARA 1, JUARA 3) -->
+            <div id="podiumContainer" class="flex items-end justify-center gap-3 sm:gap-6 my-10 min-h-[220px]">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- STATISTIK PERMAINAN -->
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-6 mb-8 text-left">
+                <h4 class="font-bold text-white text-md mb-4 border-b border-white/10 pb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-400"></i> Hasil Evaluasi Skor Akhir Kelompok
+                </h4>
+                <div id="finalScoresList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- JS generated -->
+                </div>
+            </div>
+
+            <!-- BUTTONS RESET / KEMBALI -->
+            <div class="flex flex-wrap justify-center gap-4">
+                <button onclick="restartGameSameTeams()" class="px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-fredoka text-lg font-bold rounded-2xl shadow-lg shadow-emerald-900/40 transition btn-3d">
+                    <i class="fa-solid fa-rotate-right mr-2"></i> Tanding Ulang
+                </button>
+                <button onclick="showSetupScreen()" class="px-8 py-3.5 bg-slate-700 hover:bg-slate-600 text-white font-fredoka text-lg font-bold rounded-2xl border border-white/10 transition btn-3d">
+                    <i class="fa-solid fa-house mr-2"></i> Menu Utama
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full px-6 py-3 text-center text-xs text-emerald-200/70 glass-panel border-t border-white/10 mt-6">
+        <p>Media Pembelajaran Interaktif IPS - MTs N 5 Tegal &copy; 2026 | Potensi Indonesia Menjadi Negara Maju</p>
+    </footer>
+
+
+    <!-- ==================== MODAL BAGIKAN LINK UNTUK SISWA ==================== -->
+    <div id="shareModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 text-center border border-sky-400/40 shadow-2xl space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 text-sky-300 mx-auto flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-share-nodes"></i>
+            </div>
+            <h3 class="font-fredoka text-2xl font-bold text-white">Bagikan Game ke Siswa</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Kirimkan Link atau PIN Room berikut ke HP/Laptop tiap kelompok agar dapat bergabung dan menjawab kuis bersama.
+            </p>
+
+            <div class="bg-slate-900/90 border border-white/10 p-3 rounded-2xl space-y-2">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">PIN Room Kuis</span>
+                <span id="modalPinText" class="font-fredoka text-3xl font-bold text-amber-300 tracking-widest">---</span>
+            </div>
+
+            <div class="space-y-2 text-left">
+                <label class="block text-xs font-bold text-slate-300">Tautan Langsung Siswa:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="shareUrlInput" readonly class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-300 font-mono">
+                    <button onclick="copyShareUrl()" class="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl transition">
+                        <i class="fa-solid fa-copy"></i> Salin
+                    </button>
+                </div>
+                <p class="text-[11px] text-amber-300/90 mt-1">
+                    <i class="fa-solid fa-circle-info mr-1"></i> Jika tautan dibuka di HP beda perangkat, siswa cukup memasukkan <b>PIN Room</b> di tombol <i>"Gabung PIN Room"</i>.
+                </p>
+            </div>
+
+            <button onclick="closeShareModal()" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl transition">
+                Tutup Window
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODAL INPUT GABUNG PIN ROOM SISWA ==================== -->
+    <div id="joinPinModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 text-center border border-emerald-400/40 shadow-2xl space-y-4">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 mx-auto flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-right-to-bracket"></i>
+            </div>
+            <h3 class="font-fredoka text-2xl font-bold text-white">Gabung Room Siswa</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Masukkan 6 Digit PIN Room yang ditampilkan di layar utama / proyektor guru.
+            </p>
+
+            <div class="space-y-3">
+                <input type="text" id="pinInputBox" maxlength="6" placeholder="Contoh: 849201" class="w-full bg-slate-900 border-2 border-emerald-400/50 rounded-2xl px-4 py-3 text-center text-2xl font-fredoka text-amber-300 tracking-widest focus:outline-none focus:border-amber-400">
+                <button onclick="submitPinFromModal()" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-fredoka font-bold text-base rounded-2xl shadow-lg transition btn-3d">
+                    <i class="fa-solid fa-bolt mr-1"></i> MASUK KE ROOM GAME
+                </button>
+            </div>
+
+            <button onclick="closeJoinPinModal()" class="w-full py-2 bg-slate-700/80 hover:bg-slate-600 text-slate-300 font-bold text-xs rounded-xl transition">
+                Batal
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODAL EDITOR SOAL KUSTOM ==================== -->
+    <div id="customQuizModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-2xl rounded-3xl p-6 md:p-8 max-h-[90vh] flex flex-col justify-between border border-amber-400/30 shadow-2xl">
+            <div>
+                <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+                    <h3 class="font-fredoka text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-pen-to-square text-amber-400"></i> Kelola Soal IPS MTsN 5 Tegal
+                    </h3>
+                    <button onclick="closeEditorModal()" class="text-slate-400 hover:text-white text-xl p-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <span id="customQuestionsCount" class="text-xs font-bold text-amber-300">Total Soal Kustom Ditambahkan: 0 Soal</span>
+                </div>
+
+                <!-- FORM TAMBAH SOAL -->
+                <div class="space-y-3 bg-slate-900/70 p-4 rounded-2xl border border-white/10 max-h-[48vh] overflow-y-auto">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Pertanyaan IPS</label>
+                        <input type="text" id="customQText" placeholder="Masukkan pertanyaan seputar potensi negara maju..." class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pilihan A</label>
+                            <input type="text" id="customOptA" placeholder="Jawaban A" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pilihan B</label>
+                            <input type="text" id="customOptB" placeholder="Jawaban B" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pilihan C</label>
+                            <input type="text" id="customOptC" placeholder="Jawaban C" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Pilihan D</label>
+                            <input type="text" id="customOptD" placeholder="Jawaban D" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">Penjelasan/Pembahasan Edukatif</label>
+                        <textarea id="customExp" placeholder="Masukkan alasan/pembahasan singkat untuk siswa..." class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white h-16"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Jawaban Benar</label>
+                            <select id="customCorrectOpt" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-bold">
+                                <option value="0">Pilihan A</option>
+                                <option value="1">Pilihan B</option>
+                                <option value="2">Pilihan C</option>
+                                <option value="3">Pilihan D</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">Sub-Materi</label>
+                            <select id="customSubTopic" class="w-full bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-xs text-white">
+                                <option value="pengertian">Pengertian Negara Maju</option>
+                                <option value="undp">Kriteria UNDP / HDI</option>
+                                <option value="kategori">Kategori Kawasan</option>
+                                <option value="contoh">Contoh Negara Maju</option>
+                                <option value="ciri">Ciri Negara Maju</option>
+                                <option value="potensi_id">Potensi Indonesia</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="addCustomQuestion()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tambahkan Ke Bank Soal Kustom
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-4 border-t border-white/10 pt-4">
+                <button onclick="closeEditorModal()" class="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs rounded-xl">
+                    Selesai & Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== JAVASCRIPT GAME LOGIC ==================== -->
+    <script>
+        /* -------------------------------------------------------------------------- */
+        /* 1. DATA PRESETS & BANK SOAL COMPREHENSIVE (30 SOAL IPS MTS N 5 TEGAL)      */
+        /* -------------------------------------------------------------------------- */
+        const TEAM_PRESETS = [
+            { id: 1, name: "Kelompok Maju", bgClass: "bg-amber-400", borderClass: "border-amber-400", textClass: "text-amber-300", icon: "fa-crown" },
+            { id: 2, name: "Kelompok Sejahtera", bgClass: "bg-emerald-400", borderClass: "border-emerald-400", textClass: "text-emerald-300", icon: "fa-seedling" },
+            { id: 3, name: "Kelompok Unggul", bgClass: "bg-sky-400", borderClass: "border-sky-400", textClass: "text-sky-300", icon: "fa-rocket" },
+            { id: 4, name: "Kelompok Mandiri", bgClass: "bg-purple-400", borderClass: "border-purple-400", textClass: "text-purple-300", icon: "fa-shield-halved" }
+        ];
+
+        const QUESTION_BANKS = {
+            pengertian: [
+                { q: "Apa yang dimaksud dengan Negara Maju dalam konteks pembangunan internasional?", opts: ["Negara yang memiliki wilayah daratan paling luas di dunia", "Negara dengan standar hidup tinggi, teknologi maju, dan ekonomi stabil", "Negara dengan jumlah penduduk terbanyak di kawasannya", "Negara yang menggantungkan ekonomi pada sektor pertanian subsisten"], correct: 1, subTopic: "Pengertian Negara Maju", icon: "fa-building-columns", exp: "Negara maju adalah negara yang memiliki kualitas hidup tinggi, pendapatan per kapita besar, penguasaan teknologi modern, serta struktur ekonomi yang didominasi industri dan jasa." },
+                { q: "Salah satu indikator utama yang membedakan negara maju dengan negara berkembang adalah...", opts: ["Jumlah suku bangsa dan bahasa daerah", "Tingkat penguasaan teknologi dan pendapatan per kapita", "Banyaknya jumlah sungai dan danau di wilayahnya", "Tinggi rendahnya curah hujan tahunan"], correct: 1, subTopic: "Pengertian Negara Maju", icon: "fa-chart-line", exp: "Indikator kuantitatif dan kualitatif utama negara maju mencakup pendapatan per kapita yang tinggi serta kemampuan penguasaan teknologi modern dalam roda ekonomi." },
+                { q: "Negara berkembang sering kali dicirikan oleh ketergantungan pada sektor primer (pertanian/ekstraktif). Sebaliknya, negara maju berfokus pada...", opts: ["Sektor industri, manufaktur canggih, dan jasa profesional", "Sektor perikanan tradisional dan kerajinan tangan", "Sektor kehutanan tanpa pengolahan industri", "Sektor pertambangan mentah tanpa hilirisasi"], correct: 0, subTopic: "Pengertian Negara Maju", icon: "fa-industry", exp: "Sektor manufaktur tingkat tinggi dan jasa modern menjadi tulang punggung perekonomian di negara maju." },
+                { q: "Istilah 'Gross National Income' (GNI) per kapita dalam mengukur status negara maju menggambarkan...", opts: ["Rata-rata pendapatan bersih seluruh penduduk suatu negara dalam satu tahun", "Jumlah total pengeluaran pemerintah untuk sektor militer", "Banyaknya komoditas impor yang dibeli dari negara tetangga", "Jumlah total utang luar negeri suatu bangsa"], correct: 0, subTopic: "Pengertian Negara Maju", icon: "fa-money-bill-trend-up", exp: "GNI per kapita membagi total pendapatan nasional dengan jumlah penduduk, yang mencerminkan tingkat kesejahteraan rata-rata." },
+                { q: "Mengapa pembangunan manusia (Human Development) menjadi fokus utama konsep negara maju modern?", opts: ["Karena kualitas SDM yang tinggi mendorong produktivitas dan inovasi berkelanjutan", "Agar dapat menguasai wilayah negara tetangga dengan kekuatan militer", "Untuk mengurangi persaingan di pasar internasional", "Agar negara tidak perlu menjalin kerja sama perdagangan luar negeri"], correct: 0, subTopic: "Pengertian Negara Maju", icon: "fa-user-graduate", exp: "SDM yang sehat, terdidik, dan terampil merupakan kunci utama pendorong inovasi dan kemajuan suatu bangsa." }
+            ],
+            undp: [
+                { q: "Badan Perserikatan Bangsa-Bangsa (PBB) yang menyusun dan mempublikasikan laporan Indeks Pembangunan Manusia (IPM/HDI) adalah...", opts: ["UNICEF", "UNDP (United Nations Development Programme)", "UNESCO", "WTO"], correct: 1, subTopic: "Kriteria UNDP / HDI", icon: "fa-globe", exp: "UNDP merilis Human Development Report setiap tahun yang memuat capaian IPM negara-negara di dunia." },
+                { q: "Tiga dimensi utama yang diukur dalam Indeks Pembangunan Manusia (IPM/HDI) oleh UNDP meliputi...", opts: ["Kesehatan (umur panjang), Pendidikan, dan Standar Hidup Layak", "Luas wilayah, Kekuatan Militer, dan Jumlah Penduduk", "Banyaknya Tambang, Jumlah Mobil, dan Ekspor Minyak", "Tingkat Inflasi, Luas Hutan, dan Jumlah Pelabuhan"], correct: 0, subTopic: "Kriteria UNDP / HDI", icon: "fa-heart-pulse", exp: "Dimensi IPM mencakup: Umur panjang & sehat (harapan hidup), Pengetahuan (rata-rata & harapan lama sekolah), dan Standar hidup layak (GNI per kapita PPP)." },
+                { q: "Suatu negara dikategorikan memiliki Human Development Index (HDI) 'Sangat Tinggi' (Very High) menurut standar UNDP jika skornya...", opts: ["Di bawah 0,550", "Antara 0,550 - 0,699", "Antara 0,700 - 0,799", "Sama dengan atau lebih dari 0,800"], correct: 3, subTopic: "Kriteria UNDP / HDI", icon: "fa-award", exp: "Kategori HDI Very High memiliki nilai skor ≥ 0.800, yang didominasi oleh negara-negara maju." },
+                { q: "Komponen 'Expected Years of Schooling' dalam perhitungan IPM UNDP mengukur...", opts: ["Jumlah total sekolah dasar yang ada di suatu negara", "Harapan total lamanya sekolah yang akan ditempuh anak usia masuk sekolah", "Rata-rata jam kerja guru dalam satu minggu", "Angka kelulusan mahasiswa tingkat akhir di perguruan tinggi"], correct: 1, subTopic: "Kriteria UNDP / HDI", icon: "fa-book-open-reader", exp: "Expected Years of Schooling mengukur perkiraan total tahun pendidikan formal yang diraih anak-anak." },
+                { q: "Angka Harapan Hidup saat lahir (Life Expectancy at Birth) di negara-negara maju umumnya mencapai rata-rata di atas...", opts: ["50 Tahun", "60 Tahun", "70-80+ Tahun", "40 Tahun"], correct: 2, subTopic: "Kriteria UNDP / HDI", icon: "fa-staff-snake", exp: "Layanan kesehatan canggih dan nutrisi baik membuat Angka Harapan Hidup di negara maju mencapai 75-80+ tahun." }
+            ],
+            kategori: [
+                { q: "Kawasan di dunia yang paling banyak dihuni oleh kelompok negara-negara maju berada di benua...", opts: ["Afrika dan Asia Selatan", "Eropa Barat dan Amerika Utara", "Amerika Selatan dan Oseania Tradisional", "Asia Tengah dan Karibia"], correct: 1, subTopic: "Kategori Kawasan", icon: "fa-map-location-dot", exp: "Eropa Barat (seperti Jerman, Prancis) dan Amerika Utara (AS, Kanada) merupakan konsentrasi negara maju terbesar." },
+                { q: "Di kawasan Asia Timur, negara yang dikategorikan sebagai negara maju utama sejak abad ke-20 adalah...", opts: ["Jepang dan Korea Selatan", "Laos dan Kamboja", "Nepal dan Bhutan", "Mongolia dan Myanmar"], correct: 0, subTopic: "Kategori Kawasan", icon: "fa-torii-gate", exp: "Jepang dan Korea Selatan adalah pelopor kekuatan ekonomi maju dan teknologi tinggi di Asia Timur." },
+                { q: "Di benua Oseania / Australia, dua negara tetangga Indonesia yang berstatus sebagai negara maju adalah...", opts: ["Papua Nugini dan Fiji", "Australia dan Selandia Baru", "Vanuatu dan Kiribati", "Kepulauan Solomon dan Samoa"], correct: 1, subTopic: "Kategori Kawasan", icon: "fa-kiwi-bird", exp: "Australia dan Selandia Baru merupakan dua negara berkembang sangat pesat dengan HDI sangat tinggi di Oseania." },
+                { q: "Negara di kawasan Asia Tenggara (ASEAN) yang telah resmi diakui dunia sebagai negara maju adalah...", opts: ["Indonesia", "Singapura", "Thailand", "Vietnam"], correct: 1, subTopic: "Kategori Kawasan", icon: "fa-city", exp: "Singapura menjadi satu-satunya negara di ASEAN yang berkategori negara maju dengan pendapatan per kapita sangat tinggi." },
+                { q: "Kelompok negara maju yang tergabung dalam forum ekonomi utama dunia sering dikenal dengan sebutan...", opts: ["G7 (Group of Seven)", "G20 saja", "ASEAN", "OPEC"], correct: 0, subTopic: "Kategori Kawasan", icon: "fa-handshake-simple", exp: "G7 terdiri dari 7 negara ekonomi maju utama: AS, Inggris, Jerman, Prancis, Italia, Jepang, dan Kanada." }
+            ],
+            contoh: [
+                { q: "Negara di Eropa yang terkenal dengan julukan 'Negara Kincir Angin' dan merupakan salah satu negara maju pelopor teknologi pertanian modern adalah...", opts: ["Belanda", "Yunani", "Polandia", "Portugal"], correct: 0, subTopic: "Contoh Negara Maju", icon: "fa-wind", exp: "Belanda adalah negara maju di Eropa dengan sistem pertanian & manajemen air tercanggih di dunia." },
+                { q: "Jepang dikenal sebagai negara maju di Asia karena keunggulannya di bidang...", opts: ["Ekspor bahan mentah kayu", "Industri otomotif, robotik, dan elektronika", "Pertanian padi tradisional", "Pertambangan batu bara terbuka"], correct: 1, subTopic: "Contoh Negara Maju", icon: "fa-microchip", exp: "Jepang merupakan pemimpin global di bidang industri otomotif, robotik, dan teknologi canggih." },
+                { q: "Negara maju di Amerika Utara yang memiliki Produk Domestik Bruto (PDB) terbesar di dunia adalah...", opts: ["Meksiko", "Amerika Serikat", "Brazil", "Kanada"], correct: 1, subTopic: "Contoh Negara Maju", icon: "fa-flag-usa", exp: "Amerika Serikat memiliki ekonomi terbesar dunia yang didukung inovasi teknologi, finansial, dan manufaktur." },
+                { q: "Jerman merupakan negara maju pelopor industri berat dan otomotif ternama di benua Eropa. Salah satu ciri ekonominya adalah...", opts: ["Ekspor otomotif dan mesin berkualitas tinggi", "Ketergantungan pada bantuan internasional", "Tingkat pengangguran di atas 50%", "Sektor industri yang belum berkembang"], correct: 0, subTopic: "Contoh Negara Maju", icon: "fa-car", exp: "Jerman adalah raksasa ekonomi Eropa yang terkenal dengan kualitas mesin, sains, dan industri otomotifnya." },
+                { q: "Singapura mampu menjadi negara maju di Asia Tenggara meskipun memiliki keterbatasan sumber daya alam karena...", opts: ["Mengandalkan ekspor hasil tambang bumi", "Mengembangkan sektor jasa keuangan, perdagangan Internasional, dan SDM", "Memiliki luas pertanian yang sangat luas", "Menutup diri dari pasar ekspor impor luar negeri"], correct: 1, subTopic: "Contoh Negara Maju", icon: "fa-chart-pie", exp: "Singapura memanfaatkan lokasi strategis serta investasi SDM untuk unggul di sektor keuangan, logistik, dan jasa." }
+            ],
+            ciri: [
+                { q: "Bagaimana tingkat pertumbuhan penduduk rata-rata di negara maju?", opts: ["Sangat tinggi akibat tingginya angka kelahiran", "Rendah atau stabil karena kesadaran perencanaan keluarga tinggi", "Selalu melonjak di atas 5% per tahun", "Tidak terdata oleh lembaga pemerintah"], correct: 1, subTopic: "Ciri Negara Maju", icon: "fa-users", exp: "Negara maju memiliki pertumbuhan penduduk yang relatif rendah/stabil karena pendidikan kesehatan dan kesadaran keluarga sejahtera." },
+                { q: "Tingkat melek huruf (literacy rate) masyarakat di negara-negara maju umumnya mencapai...", opts: ["Di bawah 50%", "Sekitar 60-70%", "Mendekati 99% - 100%", "Tidak bisa diukur"], correct: 2, subTopic: "Ciri Negara Maju", icon: "fa-pen-nib", exp: "Pendidikan gratis dan wajib belajar berkualitas tinggi membuat angka melek huruf di negara maju hampir mencapai 100%." },
+                { q: "Bagaimana kondisi sarana dan prasarana (infrastruktur) di negara maju?", opts: ["Sangat merata, modern, dan saling terintegrasi dengan baik", "Hanya terkonsentrasi di satu desa saja", "Sangat terbatas dan sering rusak", "Sama sekali tidak menggunakan teknologi listrik"], correct: 0, subTopic: "Ciri Negara Maju", icon: "fa-train-subway", exp: "Transportasi publik, jaringan energi, komunikasi, dan fasilitas publik di negara maju dibangun secara canggih dan terintegrasi." },
+                { q: "Penguasaan Ilmu Pengetahuan dan Teknologi (IPTEK) di negara maju berdampak langsung pada...", opts: ["Penurunan hasil produksi manufaktur", "Peningkatan efisiensi dan nilai tambah produksi", "Kemunduran kualitas pendidikan", "Ketergantungan impor pangan primer"], correct: 1, subTopic: "Ciri Negara Maju", icon: "fa-gear", exp: "IPTEK modern meningkatkan efisiensi kerja, otomatisasi, serta daya saing produk di pasar global." },
+                { q: "Angka kematian bayi (Infant Mortality Rate) di negara maju tergolong sangat rendah karena...", opts: ["Fasilitas medis dan gizi ibu-anak yang sangat baik", "Jumlah dokter yang sangat sedikit", "Minimnya fasilitas rumah sakit", "Iklim udara yang selalu dingin"], correct: 0, subTopic: "Ciri Negara Maju", icon: "fa-baby", exp: "Sistem kesehatan yang canggih, imunisasi lengkap, serta asupan gizi memadai menekan angka kematian bayi secara signifikan." }
+            ],
+            potensi_id: [
+                { q: "Indonesia memiliki potensi besar menjadi negara maju melalui 'Bonus Demografi'. Apa yang dimaksud dengan Bonus Demografi?", opts: ["Jumlah penduduk usia produktif (15-64 tahun) lebih besar daripada usia non-produktif", "Jumlah penduduk lansia melebihi jumlah anak-anak", "Pemberian dana bantuan tunai kepada seluruh warga", "Lonjakan angka kelahiran bayi secara tak terkendali"], correct: 0, subTopic: "Potensi Indonesia", icon: "fa-people-group", exp: "Bonus demografi terjadi ketika proporsi penduduk usia produktif melimpah, menjadi modal utama pendorong ekonomi." },
+                { q: "Langkah strategis 'Hilirisasi Industri' yang dilakukan Pemerintah Indonesia bertujuan untuk...", opts: ["Mengekspor bahan mentah secara langsung tanpa diolah", "Meningkatkan nilai tambah komoditas dalam negeri sebelum diekspor", "Menghentikan seluruh aktivitas pabrik di dalam negeri", "Mengimpor barang jadi dari negara luar secara besar-besaran"], correct: 1, subTopic: "Potensi Indonesia", icon: "fa-industry", exp: "Hilirisasi mengolah bahan mentah (seperti nikel, tembaga) menjadi barang setengah jadi/jadi agar bernilai jual tinggi." },
+                { q: "Letak strategis Indonesia secara geografis berada di antara dua benua dan dua samudera, yang menguntungkan bagi...", opts: ["Jalur perdagangan dan pelayaran internasional", "Penutupan kerja sama luar negeri", "Isolasi ekonomi antar pulau", "Penurunan investasi asing"], correct: 0, subTopic: "Potensi Indonesia", icon: "fa-anchor", exp: "Posisi silang strategis menjadikan Indonesia poros maritim dunia yang menguntungkan perdagangan global." },
+                { q: "Visi pemerintah Indonesia untuk menjadi salah satu kekuatan ekonomi utama dunia pada tahun 2045 dikenal dengan sebutan...", opts: ["Indonesia Emas 2045", "Indonesia Maju 2020", "Satu Nusa Satu Bangsa", "Visi Nusantara 2030"], correct: 0, subTopic: "Potensi Indonesia", icon: "fa-star-of-david", exp: "Visi Indonesia Emas 2045 menargetkan Indonesia menjadi negara maju berpendapatan tinggi pada usia 100 tahun kemerdekaan." },
+                { q: "Faktor kunci pendukung SDM Indonesia agar mampu membawa bangsa menjadi negara maju adalah melalui peningkatan...", opts: ["Kualitas pendidikan vokasi, literasi digital, dan riset teknologi", "Pembatasan akses internet untuk pelajar", "Pengurangan jumlah sekolah menengah", "Penutupan program beasiswa pendidikan"], correct: 0, subTopic: "Potensi Indonesia", icon: "fa-brain", exp: "Penguatan pendidikan vokasi, riset, dan penguasaan sains digital sangat penting untuk mencetak SDM unggul berdaya saing." }
+            ],
+            custom: []
+        };
+
+        /* -------------------------------------------------------------------------- */
+        /* 2. AUDIO SYNTHESIZER (WEB AUDIO API)                                       */
+        /* -------------------------------------------------------------------------- */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'buzzer') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.setValueAtTime(150, now + 0.1);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch(e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const statusText = document.getElementById('soundStatusText');
+            const icon = document.getElementById('soundIcon');
+            if (soundEnabled) {
+                statusText.innerText = "Suara: ON";
+                icon.className = "fa-solid fa-volume-high";
+            } else {
+                statusText.innerText = "Suara: OFF";
+                icon.className = "fa-solid fa-volume-xmark";
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(()=>{});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 3. GAMEPLAY STATE VARIABLES                                                */
+        /* -------------------------------------------------------------------------- */
+        let activeTeams = [];
+        let currentQuestions = [];
+        let currentQIndex = 0;
+        let totalQuestions = 30;
+        let timePerQuestion = 30;
+        let timerInterval = null;
+        let timeLeft = 30;
+        let gameMode = 'buzzer'; // 'buzzer' atau 'turn'
+        let currentTurnIndex = 0;
+        let activeBuzzerTeam = null;
+        let activePowerupMultiplier = 1;
+        let currentRoomId = null;
+
+        /* -------------------------------------------------------------------------- */
+        /* 4. ONLINE ROOM REAL-TIME SYNCHRONIZATION (PERMISSION SAFE)                */
+        /* -------------------------------------------------------------------------- */
+        async function initOnlineRoom() {
+            try {
+                const pin = Math.floor(100000 + Math.random() * 900000).toString();
+                currentRoomId = pin;
+
+                // Inisialisasi Relay Lokal & Broadcast
+                window.QuizRelay.init(currentRoomId);
+
+                document.getElementById('activeRoomBadge').classList.remove('hidden');
+                document.getElementById('roomPinText').innerText = currentRoomId;
+                document.getElementById('modalPinText').innerText = currentRoomId;
+                
+                const currentUrl = window.location.href.split('?')[0].split('#')[0];
+                document.getElementById('shareUrlInput').value = `${currentUrl}#room=${currentRoomId}`;
+
+                openShareModal();
+            } catch(e) {
+                console.warn("Room Init Fallback:", e);
+            }
+        }
+
+        function checkUrlForRoomPin() {
+            const hash = window.location.hash;
+            if (hash && hash.includes('room=')) {
+                const pin = hash.split('room=')[1].split('&')[0];
+                if (pin) {
+                    joinRoomById(pin);
+                }
+            }
+        }
+
+        async function joinRoomById(pin) {
+            currentRoomId = pin;
+            window.QuizRelay.init(currentRoomId);
+
+            document.getElementById('activeRoomBadge').classList.remove('hidden');
+            document.getElementById('roomPinText').innerText = currentRoomId;
+            
+            // Beritahu kelompok lain
+            window.QuizRelay.send({ type: 'JOIN_ROOM', roomId: pin });
+            alert(`Berhasil terhubung ke Kelompok Room PIN: ${currentRoomId}!`);
+        }
+
+        // Menerima pesan real-time antar tab/HP
+        window.handleRelayMessage = function(data) {
+            if (!data) return;
+
+            if (data.type === 'START_GAME') {
+                syncStartGameFromRemote(data);
+            } else if (data.type === 'LOCK_QUESTION') {
+                handleRemoteQuestionLocked(data.teamId);
+            } else if (data.type === 'NEXT_QUESTION') {
+                currentQIndex = data.currentQIndex;
+                loadQuestion();
+            }
+        };
+
+        function syncStartGameFromRemote(data) {
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('winnerScreen').classList.add('hidden');
+            document.getElementById('gameplayScreen').classList.remove('hidden');
+            document.getElementById('gameplayScreen').classList.add('flex');
+            
+            if (data.teams) activeTeams = data.teams;
+            if (data.questions) currentQuestions = data.questions;
+            totalQuestions = currentQuestions.length;
+            currentQIndex = data.currentQIndex || 0;
+
+            renderLeaderboard();
+            loadQuestion();
+        }
+
+        function handleRemoteQuestionLocked(teamId) {
+            const lockedBanner = document.getElementById('lockedQuestionBanner');
+            const lockedTeam = activeTeams.find(t => t.id === teamId);
+            
+            if (lockedTeam) {
+                lockedBanner.classList.remove('hidden');
+                setOptionsInteractable(false);
+                updateActiveTeamStatusText(`Soal Dikunci Oleh: ${lockedTeam.name}`, lockedTeam);
+            }
+        }
+
+        function openShareModal() {
+            if (!currentRoomId) {
+                initOnlineRoom();
+            } else {
+                document.getElementById('shareModal').classList.remove('hidden');
+            }
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.add('hidden');
+        }
+
+        function joinOnlineRoomPrompt() {
+            document.getElementById('joinPinModal').classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('pinInputBox').focus();
+            }, 100);
+        }
+
+        function closeJoinPinModal() {
+            document.getElementById('joinPinModal').classList.add('hidden');
+        }
+
+        function submitPinFromModal() {
+            const pinVal = document.getElementById('pinInputBox').value.trim();
+            if (pinVal && pinVal.length >= 4) {
+                joinRoomById(pinVal);
+                closeJoinPinModal();
+            } else {
+                alert("Masukkan PIN Room yang valid (minimal 4 - 6 digit angka)!");
+            }
+        }
+
+        function copyShareUrl() {
+            const copyText = document.getElementById("shareUrlInput");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Tautan kuis berhasil disalin! Silakan bagikan ke WhatsApp / Kelompok Siswa.");
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 5. START & GAMEPLAY LOOP & UI RENDERERS                                    */
+        /* -------------------------------------------------------------------------- */
+        function renderLeaderboard() {
+            const listContainer = document.getElementById('liveLeaderboardList');
+            const barsContainer = document.getElementById('scoreBarsContainer');
+            
+            listContainer.innerHTML = '';
+            barsContainer.innerHTML = '';
+
+            const maxScore = Math.max(...activeTeams.map(t => t.score), 100);
+
+            activeTeams.forEach((team) => {
+                listContainer.innerHTML += `
+                    <div class="p-3.5 rounded-2xl glass-card border ${team.borderClass} flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl ${team.bgClass} text-slate-950 flex items-center justify-center font-bold">
+                                <i class="fa-solid ${team.icon}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-white text-sm">${team.name}</h4>
+                                <div class="flex gap-1 text-[10px] text-slate-300 mt-0.5">
+                                    <span class="${team.powerups['5050'] ? 'text-emerald-400' : 'text-slate-500'}">50:50</span> •
+                                    <span class="${team.powerups['double'] ? 'text-amber-400' : 'text-slate-500'}">2x</span> •
+                                    <span class="${team.powerups['time'] ? 'text-sky-400' : 'text-slate-500'}">+15s</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="font-fredoka text-xl font-bold ${team.textClass}">${team.score} pt</span>
+                    </div>
+                `;
+
+                const heightPercent = Math.max((team.score / maxScore) * 100, 10);
+                barsContainer.innerHTML += `
+                    <div class="flex flex-col items-center gap-1 flex-1 h-full justify-end">
+                        <span class="text-[10px] font-bold text-white">${team.score}</span>
+                        <div class="w-full max-w-[28px] ${team.bgClass} rounded-t-lg transition-all duration-500" style="height: ${heightPercent}%;"></div>
+                        <span class="text-[9px] font-bold text-slate-300 truncate w-full text-center">${team.name.split(' ')[0]}</span>
+                    </div>
+                `;
+            });
+        }
+
+        function renderBuzzerButtons(enabled) {
+            const container = document.getElementById('buzzerButtonsGrid');
+            container.innerHTML = '';
+
+            activeTeams.forEach((team) => {
+                container.innerHTML += `
+                    <button onclick="pressBuzzer(${team.id})" ${!enabled ? 'disabled' : ''} class="p-3 rounded-2xl ${team.bgClass} text-slate-950 font-bold text-xs flex items-center justify-center gap-2 border-b-4 border-black/30 active:border-b-0 hover:brightness-110 transition disabled:opacity-50 disabled:pointer-events-none btn-3d">
+                        <i class="fa-solid fa-bell text-base"></i> ${team.name}
+                    </button>
+                `;
+            });
+        }
+
+        function renderOptions(opts, correctIdx) {
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            opts.forEach((opt, idx) => {
+                grid.innerHTML += `
+                    <button onclick="checkAnswer(${idx})" id="optBtn_${idx}" class="opt-btn p-4 rounded-2xl bg-slate-900/90 border border-white/10 hover:border-amber-400/60 text-left font-semibold text-sm text-slate-100 flex items-start gap-3 transition group btn-3d">
+                        <span class="w-7 h-7 rounded-xl bg-slate-800 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xs font-bold group-hover:bg-amber-400 group-hover:text-slate-950 transition flex-shrink-0">
+                            ${letters[idx]}
+                        </span>
+                        <span class="mt-0.5 leading-snug">${opt}</span>
+                    </button>
+                `;
+            });
+        }
+
+        function setOptionsInteractable(enabled) {
+            const btns = document.querySelectorAll('.opt-btn');
+            btns.forEach(btn => {
+                btn.disabled = !enabled;
+                if (!enabled) btn.classList.add('opacity-50', 'cursor-not-allowed');
+                else btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+
+        function updateActiveTeamStatusText(text, team) {
+            const textEl = document.getElementById('activeTeamStatusText');
+            const dot = document.getElementById('activeTeamIndicatorDot');
+            textEl.innerText = text;
+            if (team) {
+                textEl.className = `${team.textClass} font-bold`;
+                dot.className = `w-3 h-3 rounded-full ${team.bgClass} animate-ping`;
+            }
+        }
+
+        function handleTimer() {
+            timeLeft--;
+            document.getElementById('timerDisplay').innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                playSound('wrong');
+                showExplanation();
+                setTimeout(nextQuestion, 4000);
+            }
+        }
+
+        function usePowerup(type) {
+            if (!activeBuzzerTeam) {
+                alert("Pilih/Tekan Buzzer tim terlebih dahulu sebelum menggunakan bantuan!");
+                return;
+            }
+
+            if (!activeBuzzerTeam.powerups[type]) {
+                alert("Bantuan ini sudah pernah digunakan oleh tim Anda!");
+                return;
+            }
+
+            activeBuzzerTeam.powerups[type] = false;
+            document.getElementById(`powerup${type.charAt(0).toUpperCase() + type.slice(1)}`).disabled = true;
+
+            if (type === '5050') {
+                const q = currentQuestions[currentQIndex];
+                let wrongIndices = [0, 1, 2, 3].filter(i => i !== q.correct);
+                wrongIndices = wrongIndices.sort(() => 0.5 - Math.random()).slice(0, 2);
+                wrongIndices.forEach(i => {
+                    const btn = document.getElementById(`optBtn_${i}`);
+                    if (btn) btn.classList.add('hidden');
+                });
+            } else if (type === 'double') {
+                activePowerupMultiplier = 2;
+                alert(`Powerup Aktif! ${activeBuzzerTeam.name} akan mendapat 2X SKOR jika menjawab benar!`);
+            } else if (type === 'time') {
+                timeLeft += 15;
+                document.getElementById('timerDisplay').innerText = timeLeft;
+            }
+
+            renderLeaderboard();
+        }
+
+        function checkAnswer(selectedIdx) {
+            clearInterval(timerInterval);
+            const q = currentQuestions[currentQIndex];
+            const isCorrect = selectedIdx === q.correct;
+
+            setOptionsInteractable(false);
+
+            const selectedBtn = document.getElementById(`optBtn_${selectedIdx}`);
+            const correctBtn = document.getElementById(`optBtn_${q.correct}`);
+
+            if (isCorrect) {
+                playSound('correct');
+                if (selectedBtn) selectedBtn.classList.add('bg-emerald-600/60', 'border-emerald-400');
+                if (activeBuzzerTeam) {
+                    activeBuzzerTeam.score += 100 * activePowerupMultiplier;
+                }
+            } else {
+                playSound('wrong');
+                if (selectedBtn) selectedBtn.classList.add('bg-rose-600/60', 'border-rose-400');
+                if (correctBtn) correctBtn.classList.add('bg-emerald-600/60', 'border-emerald-400');
+                if (activeBuzzerTeam) {
+                    activeBuzzerTeam.score = Math.max(0, activeBuzzerTeam.score - 50);
+                }
+            }
+
+            renderLeaderboard();
+            showExplanation();
+            setTimeout(nextQuestion, 4500);
+        }
+
+        function showExplanation() {
+            const q = currentQuestions[currentQIndex];
+            document.getElementById('explanationText').innerText = q.exp || 'Tidak ada penjelasan tambahan.';
+            document.getElementById('explanationBox').classList.remove('hidden');
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+
+            document.getElementById('gameplayScreen').classList.add('hidden');
+            document.getElementById('winnerScreen').classList.remove('hidden');
+
+            activeTeams.sort((a, b) => b.score - a.score);
+
+            const podiumContainer = document.getElementById('podiumContainer');
+            podiumContainer.innerHTML = '';
+
+            const podiumOrder = [activeTeams[1], activeTeams[0], activeTeams[2]].filter(Boolean);
+
+            podiumOrder.forEach((team) => {
+                const rank = activeTeams.indexOf(team) + 1;
+                let height = rank === 1 ? 'h-48' : rank === 2 ? 'h-36' : 'h-28';
+                let order = rank === 1 ? 'order-2' : rank === 2 ? 'order-1' : 'order-3';
+
+                podiumContainer.innerHTML += `
+                    <div class="flex flex-col items-center ${order}">
+                        <div class="text-xs font-bold text-amber-300 mb-1">${team.name}</div>
+                        <div class="${team.bgClass} ${height} w-20 sm:w-28 rounded-t-2xl flex flex-col justify-between items-center py-3 text-slate-950 font-bold shadow-xl border-t-2 border-white/40">
+                            <span class="font-fredoka text-2xl">#${rank}</span>
+                            <i class="fa-solid ${team.icon} text-2xl"></i>
+                            <span class="text-sm font-fredoka">${team.score} pt</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const finalScoresList = document.getElementById('finalScoresList');
+            finalScoresList.innerHTML = '';
+            activeTeams.forEach((team, idx) => {
+                finalScoresList.innerHTML += `
+                    <div class="p-3 bg-slate-800/80 rounded-xl border border-white/10 flex justify-between items-center">
+                        <span class="font-bold text-slate-200 text-sm">#${idx+1} ${team.name}</span>
+                        <span class="font-fredoka font-bold ${team.textClass}">${team.score} Poin</span>
+                    </div>
+                `;
+            });
+
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function restartGameSameTeams() {
+            startGame();
+        }
+
+        function showSetupScreen() {
+            document.getElementById('winnerScreen').classList.add('hidden');
+            document.getElementById('gameplayScreen').classList.add('hidden');
+            document.getElementById('setupScreen').classList.remove('hidden');
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 6. EDITOR MODAL LOGIC                                                      */
+        /* -------------------------------------------------------------------------- */
+        function openEditorModal() {
+            document.getElementById('customQuizModal').classList.remove('hidden');
+            document.getElementById('customQuestionsCount').innerText = `Total Soal Kustom Ditambahkan: ${QUESTION_BANKS.custom.length} Soal`;
+        }
+
+        function closeEditorModal() {
+            document.getElementById('customQuizModal').classList.add('hidden');
+        }
+
+        function addCustomQuestion() {
+            const qText = document.getElementById('customQText').value.trim();
+            const optA = document.getElementById('customOptA').value.trim();
+            const optB = document.getElementById('customOptB').value.trim();
+            const optC = document.getElementById('customOptC').value.trim();
+            const optD = document.getElementById('customOptD').value.trim();
+            const exp = document.getElementById('customExp').value.trim();
+            const correctOpt = parseInt(document.getElementById('customCorrectOpt').value);
+            const subTopic = document.getElementById('customSubTopic').value;
+
+            if (!qText || !optA || !optB || !optC || !optD) {
+                alert("Harap isi pertanyaan dan keempat opsi pilihan jawaban!");
+                return;
+            }
+
+            QUESTION_BANKS.custom.push({
+                q: qText,
+                opts: [optA, optB, optC, optD],
+                correct: correctOpt,
+                subTopic: "Soal Kustom Guru",
+                icon: "fa-pen-to-square",
+                exp: exp || "Soal kustom ditambahkan oleh pengajar MTs N 5 Tegal."
+            });
+
+            document.getElementById('customQText').value = '';
+            document.getElementById('customOptA').value = '';
+            document.getElementById('customOptB').value = '';
+            document.getElementById('customOptC').value = '';
+            document.getElementById('customOptD').value = '';
+            document.getElementById('customExp').value = '';
+
+            document.getElementById('customQuestionsCount').innerText = `Total Soal Kustom Ditambahkan: ${QUESTION_BANKS.custom.length} Soal`;
+            alert("Berhasil menambahkan soal baru ke Bank Soal Kustom!");
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 7. INITIALIZATION ON LOAD                                                  */
+        /* -------------------------------------------------------------------------- */
+        /* 4. SETUP SCREEN LOGIC                                                      */
+        /* -------------------------------------------------------------------------- */
+        let teamCount = 3;
+
+        function renderTeamInputs() {
+            const container = document.getElementById('teamInputsContainer');
+            container.innerHTML = '';
+
+            for (let i = 0; i < teamCount; i++) {
+                const preset = TEAM_PRESETS[i];
+                container.innerHTML += `
+                    <div class="flex items-center gap-3 bg-slate-900/80 p-2.5 rounded-2xl border border-white/10">
+                        <div class="w-10 h-10 rounded-xl ${preset.bgClass} flex items-center justify-center text-slate-950 text-lg font-bold shadow-md">
+                            <i class="fa-solid ${preset.icon}"></i>
+                        </div>
+                        <input type="text" id="teamInput_${i}" value="${preset.name}" class="flex-1 bg-transparent text-white font-bold text-sm focus:outline-none px-2" placeholder="Nama Kelompok ${i+1}">
+                    </div>
+                `;
+            }
+
+            document.getElementById('removeTeamBtn').disabled = teamCount <= 2;
+            document.getElementById('addTeamBtn').disabled = teamCount >= 4;
+        }
+
+        function addTeamInput() {
+            if (teamCount < 4) {
+                teamCount++;
+                renderTeamInputs();
+            }
+        }
+
+        function removeTeamInput() {
+            if (teamCount > 2) {
+                teamCount--;
+                renderTeamInputs();
+            }
+        }
+
+        function selectGameMode(mode) {
+            gameMode = mode;
+            const buzzerBtn = document.getElementById('modeBuzzerBtn');
+            const turnBtn = document.getElementById('modeTurnBtn');
+
+            if (mode === 'buzzer') {
+                buzzerBtn.className = 'py-3 px-3 rounded-xl border-2 border-emerald-400 bg-emerald-500/20 text-white font-bold text-sm flex flex-col items-center justify-center gap-1 transition';
+                turnBtn.className = 'py-3 px-3 rounded-xl border-2 border-white/10 bg-slate-800/40 text-slate-400 font-bold text-sm flex flex-col items-center justify-center gap-1 transition';
+            } else {
+                turnBtn.className = 'py-3 px-3 rounded-xl border-2 border-emerald-400 bg-emerald-500/20 text-white font-bold text-sm flex flex-col items-center justify-center gap-1 transition';
+                buzzerBtn.className = 'py-3 px-3 rounded-xl border-2 border-white/10 bg-slate-800/40 text-slate-400 font-bold text-sm flex flex-col items-center justify-center gap-1 transition';
+            }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 5. START & GAMEPLAY LOOP                                                   */
+        /* -------------------------------------------------------------------------- */
+        function startGame() {
+            initAudio();
+
+            activeTeams = [];
+            for (let i = 0; i < teamCount; i++) {
+                const name = document.getElementById(`teamInput_${i}`).value.trim() || TEAM_PRESETS[i].name;
+                activeTeams.push({
+                    ...TEAM_PRESETS[i],
+                    name: name,
+                    score: 0,
+                    powerups: { '5050': true, 'double': true, 'time': true }
+                });
+            }
+
+            const cat = document.getElementById('categorySelect').value;
+            let bank = [];
+
+            if (cat === 'all') {
+                Object.keys(QUESTION_BANKS).forEach(key => {
+                    if (key !== 'custom') {
+                        bank = bank.concat(QUESTION_BANKS[key]);
+                    }
+                });
+            } else if (QUESTION_BANKS[cat]) {
+                bank = QUESTION_BANKS[cat];
+            }
+
+            if (cat === 'custom' && QUESTION_BANKS.custom.length === 0) {
+                alert("Bank soal kustom masih kosong! Silakan isi melalui tombol 'Kelola Soal'.");
+                return;
+            }
+
+            currentQuestions = [...bank].sort(() => 0.5 - Math.random());
+            totalQuestions = parseInt(document.getElementById('questionCountSelect').value);
+            if (currentQuestions.length > totalQuestions) {
+                currentQuestions = currentQuestions.slice(0, totalQuestions);
+            } else {
+                totalQuestions = currentQuestions.length;
+            }
+
+            timePerQuestion = parseInt(document.getElementById('timerSelect').value);
+            currentQIndex = 0;
+            currentTurnIndex = 0;
+
+            // Broadcast Mulai Game ke Kelompok Lain
+            if (currentRoomId) {
+                window.QuizRelay.send({
+                    type: 'START_GAME',
+                    teams: activeTeams,
+                    questions: currentQuestions,
+                    currentQIndex: 0
+                });
+            }
+
+            document.getElementById('totalQuestionsNum').innerText = totalQuestions;
+
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('winnerScreen').classList.add('hidden');
+            document.getElementById('gameplayScreen').classList.remove('hidden');
+            document.getElementById('gameplayScreen').classList.add('flex');
+
+            renderLeaderboard();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            activeBuzzerTeam = null;
+            activePowerupMultiplier = 1;
+
+            document.getElementById('explanationBox').classList.add('hidden');
+            document.getElementById('lockedQuestionBanner').classList.add('hidden');
+
+            if (currentQIndex >= totalQuestions) {
+                endGame();
+                return;
+            }
+
+            const q = currentQuestions[currentQIndex];
+
+            document.getElementById('currentQuestionNum').innerText = currentQIndex + 1;
+            document.getElementById('questionText').innerText = q.q;
+            document.getElementById('subTopicTag').innerText = q.subTopic || 'IPS MTs';
+            document.getElementById('questionIconBadge').innerHTML = `<i class="fa-solid ${q.icon || 'fa-graduation-cap'}"></i>`;
+
+            document.getElementById('powerup5050').disabled = false;
+            document.getElementById('powerupDouble').disabled = false;
+            document.getElementById('powerupTime').disabled = false;
+
+            renderOptions(q.opts, q.correct);
+
+            if (gameMode === 'buzzer') {
+                document.getElementById('buzzerSection').classList.remove('hidden');
+                document.getElementById('activeTeamStatusText').innerText = 'Rebutan! Tekan Bel Kelompok...';
+                document.getElementById('activeTeamStatusText').className = 'text-amber-300 font-bold';
+                document.getElementById('activeTeamIndicatorDot').className = 'w-3 h-3 rounded-full bg-amber-400 animate-ping';
+                renderBuzzerButtons(true);
+                setOptionsInteractable(false);
+            } else {
+                document.getElementById('buzzerSection').classList.add('hidden');
+                activeBuzzerTeam = activeTeams[currentTurnIndex];
+                updateActiveTeamStatusText(`Giliran Jawab: ${activeBuzzerTeam.name}`, activeBuzzerTeam);
+                setOptionsInteractable(true);
+            }
+
+            if (timePerQuestion > 0) {
+                timeLeft = timePerQuestion;
+                document.getElementById('timerContainer').classList.remove('hidden');
+                document.getElementById('timerDisplay').innerText = timeLeft;
+                timerInterval = setInterval(handleTimer, 1000);
+            } else {
+                document.getElementById('timerContainer').classList.add('hidden');
+            }
+        }
+
+        function pressBuzzer(teamId) {
+            if (activeBuzzerTeam !== null) return;
+
+            activeBuzzerTeam = activeTeams.find(t => t.id === teamId);
+            playSound('buzzer');
+
+            // Kunci Soal secara Realtime agar kelompok lain tidak bisa menjawab
+            if (currentRoomId) {
+                window.QuizRelay.send({
+                    type: 'LOCK_QUESTION',
+                    teamId: teamId
+                });
+            }
+
+            updateActiveTeamStatusText(`Diambil Oleh: ${activeBuzzerTeam.name}!`, activeBuzzerTeam);
+            renderBuzzerButtons(false);
+            setOptionsInteractable(true);
+        }
+
+        function nextQuestion() {
+            currentQIndex++;
+            if (gameMode === 'turn') {
+                currentTurnIndex = (currentTurnIndex + 1) % activeTeams.length;
+            }
+
+            // Sync Soal Berikutnya
+            if (currentRoomId) {
+                window.QuizRelay.send({
+                    type: 'NEXT_QUESTION',
+                    currentQIndex: currentQIndex
+                });
+            }
+
+            loadQuestion();
+        }
+
+        window.onload = function() {
+            renderTeamInputs();
+            checkUrlForRoomPin();
+        }
+    </script>
+</body>
+</html>
